@@ -1,6 +1,6 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { TOKEN_VERIFIER, type TokenVerifier } from './token-verifier';
-import type { AuthenticatedUser, UsersService } from '../users/users.service';
+import { UsersService, type AuthenticatedUser } from '../users/users.service';
 
 @Injectable()
 export class AuthenticationService {
