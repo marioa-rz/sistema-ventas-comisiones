@@ -10,6 +10,10 @@
 
 La migración habilita RLS en todas las tablas comerciales y no crea políticas para `anon` ni `authenticated`; por tanto PostgREST no ofrece acceso directo. La API se conecta con un rol de base de datos privado y aplica además autorización por recurso. RLS es defensa adicional, no la regla de negocio principal.
 
+## Auth
+
+NestJS verifica tokens con el JWKS asimétrico publicado por Supabase. Se validan firma, algoritmo permitido, `iss`, `aud`, `exp` y `sub`. La URL JWKS debe derivar exactamente del emisor configurado para impedir sustitución de claves. Los claims modificables y el claim `role` no conceden permisos comerciales: después de la verificación se consulta `app_users` por `auth_user_id`, exigiendo `is_active = true`.
+
 ## Storage
 
 - `product-images`: público solo para recursos publicados.
