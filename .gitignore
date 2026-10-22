@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/
+apps/api/src/generated/prisma/
+apps/api/prisma/dev.db*
+.prisma/
+tmp/
