@@ -1,4 +1,5 @@
 import { Inject, Injectable, Optional } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import type { JWTVerifyGetKey } from 'jose';
 import { loadEnvironment } from '../config/environment';
 import type { TokenVerifier, VerifiedToken } from './token-verifier';
@@ -39,8 +40,8 @@ export class SupabaseJwtVerifier implements TokenVerifier {
       requiredClaims: ['sub', 'exp', 'iss', 'aud'],
     });
 
-    if (typeof payload.sub !== 'string' || payload.sub.length === 0) {
-      throw new Error('JWT subject is missing');
+    if (typeof payload.sub !== 'string' || !isUUID(payload.sub)) {
+      throw new Error('JWT subject is invalid');
     }
     return { subject: payload.sub };
   }
