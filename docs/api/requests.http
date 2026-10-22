@@ -1,0 +1,12 @@
+@baseUrl = http://localhost:3000/api
+@accessToken = REPLACE_WITH_SUPABASE_ACCESS_TOKEN
+
+### Liveness
+GET {{baseUrl}}/health
+
+### Readiness (incluye PostgreSQL)
+GET {{baseUrl}}/health/ready
+
+### Perfil autenticado
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}

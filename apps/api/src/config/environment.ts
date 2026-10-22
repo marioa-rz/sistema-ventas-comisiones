@@ -2,6 +2,9 @@ export interface Environment {
   databaseUrl: string;
   nodeEnv: 'development' | 'test' | 'production';
   port: number;
+  supabaseJwtIssuer: string;
+  supabaseJwtAudience: string;
+  supabaseJwksUrl: string;
 }
 
 export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
@@ -20,5 +23,34 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     throw new Error('PORT must be an integer between 1 and 65535');
   }
 
-  return { databaseUrl, nodeEnv: nodeEnv as Environment['nodeEnv'], port };
+  const supabaseJwtIssuer = required(source, 'SUPABASE_JWT_ISSUER').replace(/\/$/, '');
+  const supabaseJwtAudience = required(source, 'SUPABASE_JWT_AUDIENCE');
+  const supabaseJwksUrl = required(source, 'SUPABASE_JWKS_URL');
+  const expectedJwksUrl = `${supabaseJwtIssuer}/.well-known/jwks.json`;
+
+  if (supabaseJwksUrl !== expectedJwksUrl) {
+    throw new Error('SUPABASE_JWKS_URL must be the discovery endpoint for SUPABASE_JWT_ISSUER');
+  }
+
+  const issuerUrl = new URL(supabaseJwtIssuer);
+  if (nodeEnv === 'production' && issuerUrl.protocol !== 'https:') {
+    throw new Error('SUPABASE_JWT_ISSUER must use HTTPS in production');
+  }
+
+  return {
+    databaseUrl,
+    nodeEnv: nodeEnv as Environment['nodeEnv'],
+    port,
+    supabaseJwtIssuer,
+    supabaseJwtAudience,
+    supabaseJwksUrl,
+  };
+}
+
+function required(source: NodeJS.ProcessEnv, name: string): string {
+  const value = source[name]?.trim();
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+  return value;
 }
