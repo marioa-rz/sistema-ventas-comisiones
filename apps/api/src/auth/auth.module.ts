@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AdminUsersController } from '../users/admin-users.controller';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthenticationService } from './authentication.service';
@@ -9,7 +10,7 @@ import { TOKEN_VERIFIER } from './token-verifier';
 
 @Module({
   imports: [UsersModule],
-  controllers: [AuthController],
+  controllers: [AuthController, AdminUsersController],
   providers: [
     AuthenticationService,
     SupabaseAuthGuard,

@@ -167,3 +167,33 @@ Authorization: Bearer {{adminToken}}
 ### Reporte de ventas en exportación CSV (ADMIN)
 GET {{baseUrl}}/admin/reports/sales?startDate=2026-10-01&endDate=2026-10-31&format=csv
 Authorization: Bearer {{adminToken}}
+
+
+### Listar usuarios del sistema (ADMIN)
+GET {{baseUrl}}/admin/users?role=SELLER&isActive=true&limit=20&offset=0
+Authorization: Bearer {{adminToken}}
+
+### Crear / Vincular usuario desde Supabase Auth (ADMIN)
+POST {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "authUserId": "REPLACE_WITH_SUPABASE_AUTH_UUID",
+  "displayName": "Vendedora Sakura Uno",
+  "role": "SELLER",
+  "isActive": true
+}
+
+### Actualizar o desactivar usuario (ADMIN)
+PATCH {{baseUrl}}/admin/users/{{orderId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Historial de ventas de un vendedor específico (ADMIN)
+GET {{baseUrl}}/admin/users/{{orderId}}/sales?limit=20&offset=0
+Authorization: Bearer {{adminToken}}
