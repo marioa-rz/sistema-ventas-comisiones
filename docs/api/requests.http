@@ -127,3 +127,43 @@ Content-Type: application/json
 {
   "reason": "Cliente desistió"
 }
+
+
+### Comisiones del vendedor autenticado (SELLER)
+GET {{baseUrl}}/seller/commissions?status=APPROVED&limit=20&offset=0
+Authorization: Bearer {{sellerToken}}
+
+### Comisiones generales (ADMIN)
+GET {{baseUrl}}/admin/commissions?status=APPROVED
+Authorization: Bearer {{adminToken}}
+
+### Registrar liquidación de comisiones (ADMIN)
+POST {{baseUrl}}/admin/commission-payouts
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "sellerId": "REPLACE_WITH_SELLER_UUID",
+  "commissionIds": [
+    "REPLACE_WITH_COMMISSION_UUID"
+  ],
+  "reference": "TR-BANCO-778899",
+  "note": "Liquidación quincenal",
+  "idempotencyKey": "payout-oct-2026-001"
+}
+
+### Listado de liquidaciones (ADMIN)
+GET {{baseUrl}}/admin/commission-payouts?limit=20&offset=0
+Authorization: Bearer {{adminToken}}
+
+### Dashboard ejecutivo (ADMIN)
+GET {{baseUrl}}/admin/dashboard
+Authorization: Bearer {{adminToken}}
+
+### Reporte de ventas en rango JSON (ADMIN)
+GET {{baseUrl}}/admin/reports/sales?startDate=2026-10-01&endDate=2026-10-31&format=json
+Authorization: Bearer {{adminToken}}
+
+### Reporte de ventas en exportación CSV (ADMIN)
+GET {{baseUrl}}/admin/reports/sales?startDate=2026-10-01&endDate=2026-10-31&format=csv
+Authorization: Bearer {{adminToken}}

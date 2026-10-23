@@ -4,7 +4,7 @@ Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, c
 
 ## Estado actual
 
-Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora catálogo y pedidos; la fase 6 añade reclamo atómico por vendedores, propiedad de pedidos, revisión de pagos, confirmación de ventas, cancelaciones y corrección controlada de comprobantes. No se incluyen todavía las pantallas de Next.js.
+Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora catálogo y pedidos; la fase 6 añade reclamo atómico por vendedores, propiedad de pedidos, revisión de pagos, confirmación de ventas, cancelaciones y corrección controlada de comprobantes. La fase 7 implementa comisiones aprobadas por venta confirmada, liquidaciones agrupadas idempotentes con prevención de doble pago, dashboard ejecutivo y reportes de ventas con corte en zona horaria `America/Guatemala` y exportación CSV. No se incluyen todavía las pantallas de Next.js.
 
 ## Requisitos
 
@@ -47,6 +47,17 @@ La subida privada de comprobantes requiere `SUPABASE_SECRET_KEY`, disponible sol
 Las rutas `/api/seller/orders` exigen un perfil activo con rol `SELLER`. El vendedor se obtiene siempre del JWT validado y puede reclamar un código pendiente, consultar únicamente pedidos propios y marcar efectivo recibido sin confirmar la venta.
 
 Las rutas `/api/admin/orders` exigen rol `ADMIN`. La verificación confirma en una sola transacción el pago, el pedido y la comisión; el rechazo conserva la venta pendiente. Un comprobante rechazado puede reemplazarse de forma controlada y su consulta utiliza una URL firmada de cinco minutos. Las cancelaciones solo se permiten mientras el pedido está pendiente.
+
+## Comisiones, liquidaciones y reportes
+
+- **Vendedor:** `GET /api/seller/commissions` entrega el resumen de comisiones pendientes, aprobadas y pagadas junto con el detalle de pedidos propios.
+- **Administración:**
+  - `GET /api/admin/commissions`: consulta global filtrable por vendedor, estado y rango de fechas.
+  - `POST /api/admin/commission-payouts`: liquidación atómica agrupada de comisiones aprobadas; requiere `idempotencyKey` para evitar doble pago ante reintentos.
+  - `GET /api/admin/commission-payouts`: historial de liquidaciones registradas.
+  - `GET /api/admin/dashboard`: métricas ejecutivas de ventas confirmadas (hoy, semana, mes, año), pedidos por estado y resumen de comisiones.
+  - `GET /api/admin/reports/sales`: reporte analítico por rango de fechas proyectado en zona horaria `America/Guatemala`, con desglose diario, desglose por vendedor y opción de exportación a CSV.
+
 
 ## Base de datos
 
