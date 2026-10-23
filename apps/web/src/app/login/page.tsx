@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, Sparkles, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 
 export default function LoginPage() {
@@ -44,55 +45,63 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto py-12 px-4 space-y-6">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 bg-gradient-to-tr from-sakura-500 to-rose-400 rounded-2xl flex items-center justify-center text-white mx-auto shadow-md">
-          <Sparkles className="w-6 h-6" />
+      <div className="text-center space-y-3">
+        <div className="relative w-16 h-16 mx-auto">
+          <Image
+            src="/sakura-logo.png"
+            alt="Sakura Beauty"
+            fill
+            className="object-contain filter drop-shadow-[0_0_15px_rgba(255,45,155,0.4)]"
+            priority
+          />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Iniciar Sesión</h1>
-        <p className="text-xs text-gray-500">
-          Acceso exclusivo para Vendedoras y Administradoras de Sakura Nails
+        <h1 className="text-2xl font-black text-white">
+          Sakura <span className="text-sakura">Beauty</span>
+        </h1>
+        <p className="text-xs text-[#A09098]">
+          Acceso exclusivo para Vendedoras y Administradoras
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6 space-y-4">
+      <div className="bg-[#0D0A0C] rounded-2xl border border-[rgba(255,45,155,0.25)] p-6 space-y-4 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-3.5 py-2.5 rounded-xl text-xs flex items-start space-x-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="bg-red-950/40 border border-red-500/40 text-red-200 px-3.5 py-2.5 rounded-xl text-xs flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
               Correo Electrónico
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="email"
                 required
-                placeholder="vendedora@sakuranails.gt"
+                placeholder="vendedora@sakurabeauty.gt"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent"
+                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-white placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
               Contraseña
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input
                 type="password"
                 required
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent"
+                className="w-full pl-9 pr-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-white placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
             </div>
           </div>
@@ -100,10 +109,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-2.5 px-4 rounded-xl text-white font-semibold text-sm transition-all shadow-md flex items-center justify-center space-x-2 ${
+            className={`w-full py-2.5 px-4 rounded-xl text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 ${
               isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-sakura-600 hover:bg-sakura-700 active:scale-[0.98]'
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                : 'bg-sakura hover:bg-sakura-glow active:scale-[0.98]'
             }`}
           >
             {isLoading ? (

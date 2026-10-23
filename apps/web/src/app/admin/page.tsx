@@ -4,16 +4,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   TrendingUp,
-  FileSpreadsheet,
   CheckCircle,
   XCircle,
   Eye,
   Calendar,
-  AlertCircle,
   Download,
-  Users,
-  DollarSign,
-  Layers,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { apiClient } from '../../lib/api';
@@ -146,7 +141,6 @@ export default function AdminDashboardPage() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
     const csvUrl = `${apiUrl.replace(/\/$/, '')}/admin/reports/sales?startDate=${reportStartDate}&endDate=${reportEndDate}&format=csv`;
 
-    // Descarga autenticada
     fetch(csvUrl, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -164,7 +158,7 @@ export default function AdminDashboardPage() {
   };
 
   if (authLoading || (!user && isLoading)) {
-    return <div className="text-center py-20 text-gray-500 text-sm">Cargando panel de administración...</div>;
+    return <div className="text-center py-20 text-[#A09098] text-sm">Cargando panel de administración...</div>;
   }
 
   const filteredOrders = orders.filter((o) => {
@@ -175,34 +169,34 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-rose-100 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#0D0A0C] p-6 rounded-2xl border border-[rgba(255,45,155,0.2)] shadow-sm">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-sakura-600">Panel Administradora</span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1">Métricas y Operaciones</h1>
-          <p className="text-xs text-gray-500">
-            Control de ventas confirmadas, verificación de transferencias y reportes.
+          <span className="text-xs font-bold uppercase tracking-wider text-sakura">Panel Administradora</span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">Métricas y Operaciones</h1>
+          <p className="text-xs text-[#A09098]">
+            Control de ventas confirmadas, verificación de transferencias y reportes de Sakura Beauty.
           </p>
         </div>
 
         {/* Exportación CSV */}
-        <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-200 text-xs">
-          <Calendar className="w-4 h-4 text-gray-500 ml-1" />
+        <div className="flex items-center gap-2 bg-[#131014] p-2 rounded-xl border border-[rgba(255,255,255,0.08)] text-xs">
+          <Calendar className="w-4 h-4 text-sakura ml-1" />
           <input
             type="date"
             value={reportStartDate}
             onChange={(e) => setReportStartDate(e.target.value)}
-            className="border border-gray-200 rounded px-2 py-1 text-xs bg-white"
+            className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#080608] text-white"
           />
-          <span className="text-gray-400">a</span>
+          <span className="text-gray-500">a</span>
           <input
             type="date"
             value={reportEndDate}
             onChange={(e) => setReportEndDate(e.target.value)}
-            className="border border-gray-200 rounded px-2 py-1 text-xs bg-white"
+            className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#080608] text-white"
           />
           <button
             onClick={handleDownloadCsv}
-            className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-semibold shadow-sm transition-all"
+            className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all"
           >
             <Download className="w-3.5 h-3.5" />
             <span>CSV</span>
@@ -213,34 +207,34 @@ export default function AdminDashboardPage() {
       {/* Métricas Principales */}
       {dashboard && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm space-y-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ventas Hoy</span>
-            <div className="text-2xl font-black text-gray-900">Q{dashboard.salesToday.totalAmount}</div>
-            <span className="text-xs text-emerald-600 font-medium">
+          <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-sm space-y-1">
+            <span className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider">Ventas Hoy</span>
+            <div className="text-2xl font-black text-white">Q{dashboard.salesToday.totalAmount}</div>
+            <span className="text-xs text-emerald-400 font-medium">
               {dashboard.salesToday.ordersCount} ventas confirmadas
             </span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm space-y-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Esta Semana</span>
-            <div className="text-2xl font-black text-gray-900">Q{dashboard.salesWeek.totalAmount}</div>
-            <span className="text-xs text-emerald-600 font-medium">
+          <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-sm space-y-1">
+            <span className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider">Esta Semana</span>
+            <div className="text-2xl font-black text-white">Q{dashboard.salesWeek.totalAmount}</div>
+            <span className="text-xs text-emerald-400 font-medium">
               {dashboard.salesWeek.ordersCount} ventas confirmadas
             </span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm space-y-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Este Mes</span>
-            <div className="text-2xl font-black text-sakura-600">Q{dashboard.salesMonth.totalAmount}</div>
-            <span className="text-xs text-emerald-600 font-medium">
+          <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,45,155,0.3)] shadow-[0_0_20px_rgba(255,45,155,0.1)] space-y-1">
+            <span className="text-[10px] font-bold text-sakura uppercase tracking-wider">Este Mes</span>
+            <div className="text-2xl font-black text-sakura">Q{dashboard.salesMonth.totalAmount}</div>
+            <span className="text-xs text-emerald-400 font-medium">
               {dashboard.salesMonth.ordersCount} ventas confirmadas
             </span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm space-y-1">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Comisiones Aprobadas</span>
-            <div className="text-2xl font-black text-emerald-700">Q{dashboard.commissions.approvedAmount}</div>
-            <span className="text-xs text-gray-500 font-medium">
+          <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-sm space-y-1">
+            <span className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider">Comisiones Aprobadas</span>
+            <div className="text-2xl font-black text-emerald-400">Q{dashboard.commissions.approvedAmount}</div>
+            <span className="text-xs text-[#A09098] font-medium">
               (Q{dashboard.commissions.pendingAmount} pendientes)
             </span>
           </div>
@@ -248,19 +242,19 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Gestión de Pedidos y Verificación de Pagos */}
-      <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-          <h2 className="text-lg font-bold text-gray-900">Gestión de Pedidos</h2>
+      <div className="bg-[#0D0A0C] rounded-2xl border border-[rgba(255,45,155,0.2)] p-6 space-y-4 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[rgba(255,255,255,0.08)] pb-4">
+          <h2 className="text-lg font-bold text-white">Gestión de Pedidos</h2>
 
           <div className="flex gap-2">
             {(['PENDING', 'CONFIRMED', 'ALL'] as const).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setSelectedFilter(filter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   selectedFilter === filter
-                    ? 'bg-sakura-600 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-sakura text-white shadow-[0_0_15px_rgba(255,45,155,0.3)]'
+                    : 'bg-[#131014] text-[#A09098] hover:text-white border border-[rgba(255,255,255,0.05)]'
                 }`}
               >
                 {filter === 'PENDING' ? 'Pendientes de Pago' : filter === 'CONFIRMED' ? 'Confirmados' : 'Todos'}
@@ -271,8 +265,8 @@ export default function AdminDashboardPage() {
 
         {/* Tabla de Pedidos */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-gray-600">
-            <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider font-semibold text-[10px]">
+          <table className="w-full text-left text-xs text-[#C2B6BC]">
+            <thead className="bg-[#131014] text-[#A09098] uppercase tracking-wider font-semibold text-[10px] border-b border-[rgba(255,255,255,0.05)]">
               <tr>
                 <th className="py-3 px-3">Código</th>
                 <th className="py-3 px-3">Cliente</th>
@@ -282,10 +276,10 @@ export default function AdminDashboardPage() {
                 <th className="py-3 px-3 text-right">Acciones de Verificación</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-gray-400">
+                  <td colSpan={6} className="text-center py-8 text-[#5C4E54]">
                     No hay pedidos con el filtro seleccionado.
                   </td>
                 </tr>
@@ -296,29 +290,29 @@ export default function AdminDashboardPage() {
                   const isProcessing = processingPaymentId === ord.id;
 
                   return (
-                    <tr key={ord.id} className="hover:bg-rose-50/30 transition-colors">
-                      <td className="py-3 px-3 font-mono font-bold text-gray-900">{ord.publicCode}</td>
+                    <tr key={ord.id} className="hover:bg-white/[0.02] transition-colors">
+                      <td className="py-3 px-3 font-mono font-bold text-white">{ord.publicCode}</td>
                       <td className="py-3 px-3">
-                        <div className="font-semibold text-gray-800">{ord.customer.name}</div>
-                        <div className="text-[11px] text-gray-400">{ord.customer.phone}</div>
+                        <div className="font-semibold text-white">{ord.customer.name}</div>
+                        <div className="text-[11px] text-[#A09098]">{ord.customer.phone}</div>
                       </td>
                       <td className="py-3 px-3">
                         {ord.seller ? (
-                          <span className="font-medium text-gray-800">{ord.seller.displayName}</span>
+                          <span className="font-medium text-white">{ord.seller.displayName}</span>
                         ) : (
-                          <span className="text-amber-600 italic">Sin asignar</span>
+                          <span className="text-amber-400 italic">Sin asignar</span>
                         )}
                       </td>
                       <td className="py-3 px-3">
-                        <span className="font-semibold">{isTransfer ? 'Transferencia' : 'Efectivo'}</span>
+                        <span className="font-semibold text-white">{isTransfer ? 'Transferencia' : 'Efectivo'}</span>
                         <div className="mt-0.5">
                           <span
                             className={`inline-block text-[9px] font-bold px-1.5 py-0.5 rounded ${
                               ord.status === 'CONFIRMED'
-                                ? 'bg-emerald-100 text-emerald-800'
+                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
                                 : ord.status === 'CANCELLED'
-                                ? 'bg-gray-100 text-gray-600'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-gray-900 text-gray-400 border border-gray-700'
+                                : 'bg-amber-950 text-amber-300 border border-amber-500/30'
                             }`}
                           >
                             {ord.status}
@@ -326,31 +320,29 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
                       <td className="py-3 px-3">
-                        <div className="font-bold text-gray-900">Q{parseFloat(ord.totalAmount).toFixed(2)}</div>
-                        <div className="text-[10px] text-emerald-700">
+                        <div className="font-bold text-white">Q{parseFloat(ord.totalAmount).toFixed(2)}</div>
+                        <div className="text-[10px] text-sakura">
                           Comisión: Q{parseFloat(ord.commissionAmount).toFixed(2)}
                         </div>
                       </td>
                       <td className="py-3 px-3 text-right space-x-1.5 whitespace-nowrap">
-                        {/* Ver comprobante */}
                         {isTransfer && hasProof && (
                           <button
                             onClick={() => handleViewProof(ord)}
                             disabled={loadingProofId === ord.id}
-                            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[11px] font-medium transition-colors"
+                            className="inline-flex items-center space-x-1 px-2.5 py-1 bg-[#1A151A] hover:bg-[#30272E] text-white border border-[rgba(255,45,155,0.3)] rounded-lg text-[11px] font-medium transition-colors"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-3.5 h-3.5 text-sakura" />
                             <span>{loadingProofId === ord.id ? 'Cargando...' : 'Comprobante'}</span>
                           </button>
                         )}
 
-                        {/* Botón Verificar Pago */}
                         {ord.status === 'PENDING' && ord.seller && (
                           <>
                             <button
                               onClick={() => handleVerifyPayment(ord.id, 'VERIFIED')}
                               disabled={isProcessing}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all"
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                               <span>Confirmar Venta</span>
@@ -360,7 +352,7 @@ export default function AdminDashboardPage() {
                               <button
                                 onClick={() => handleVerifyPayment(ord.id, 'REJECTED')}
                                 disabled={isProcessing}
-                                className="inline-flex items-center space-x-1 px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-[11px] font-bold transition-all"
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                                 <span>Rechazar</span>
@@ -380,22 +372,22 @@ export default function AdminDashboardPage() {
 
       {/* Modal de Previsualización de Comprobante Privado */}
       {signedUrlData && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl border border-gray-100">
-            <div className="flex justify-between items-center border-b pb-3">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0D0A0C] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-[0_0_50px_rgba(255,45,155,0.25)] border border-[rgba(255,45,155,0.3)]">
+            <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.08)] pb-3">
               <div>
-                <h3 className="font-bold text-gray-900">Comprobante de Transferencia</h3>
-                <span className="text-xs text-gray-500 font-mono">Pedido: {signedUrlData.orderCode}</span>
+                <h3 className="font-bold text-white">Comprobante de Transferencia</h3>
+                <span className="text-xs text-sakura font-mono">Pedido: {signedUrlData.orderCode}</span>
               </div>
               <button
                 onClick={() => setSignedUrlData(null)}
-                className="p-1 rounded-lg hover:bg-gray-100 text-gray-500"
+                className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white"
               >
                 ✕
               </button>
             </div>
 
-            <div className="aspect-[4/3] bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center border">
+            <div className="aspect-[4/3] bg-[#080608] rounded-xl overflow-hidden flex items-center justify-center border border-[rgba(255,255,255,0.05)]">
               {signedUrlData.url.toLowerCase().includes('.pdf') ? (
                 <iframe src={signedUrlData.url} className="w-full h-full" title="Comprobante PDF" />
               ) : (
@@ -407,11 +399,11 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            <div className="flex justify-between items-center text-xs text-gray-500">
+            <div className="flex justify-between items-center text-xs text-[#96878F]">
               <span>* URL firmada privada (expira en 5 minutos).</span>
               <button
                 onClick={() => setSignedUrlData(null)}
-                className="px-4 py-2 bg-gray-900 text-white font-semibold rounded-xl text-xs hover:bg-black transition-colors"
+                className="px-4 py-2 bg-sakura hover:bg-sakura-glow text-white font-bold rounded-xl text-xs transition-colors shadow-[0_0_15px_rgba(255,45,155,0.3)]"
               >
                 Cerrar
               </button>

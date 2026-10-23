@@ -16,8 +16,7 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TRANSFER'>('CASH');
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
 
-  // Clave de idempotencia local por intento
-  const [idempotencyKey, setIdempotencyKey] = useState<string>(() => crypto.randomUUID());
+  const [idempotencyKey] = useState<string>(() => crypto.randomUUID());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -85,7 +84,6 @@ export default function CartPage() {
           },
         );
       } else {
-        // Transferencia con multipart/form-data
         const formData = new FormData();
         formData.append('customerName', customerName.trim());
         formData.append('customerPhone', customerPhone.trim());
@@ -105,7 +103,6 @@ export default function CartPage() {
         );
       }
 
-      // Limpiar carrito y redirigir
       clearCart();
       router.push(
         `/order-confirmation?code=${result.publicCode}&total=${result.total}&method=${result.payment.method}&name=${encodeURIComponent(
@@ -116,7 +113,6 @@ export default function CartPage() {
       setErrorMessage(
         err.message || 'Ocurrió un error al procesar tu pedido. Si persiste, conserva tu clave de reintento.',
       );
-      // Nota: No regeneramos idempotencyKey para permitir un reintento idempotente seguro
     } finally {
       setIsSubmitting(false);
     }
@@ -124,17 +120,17 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-rose-100 max-w-2xl mx-auto p-8 space-y-4">
-        <div className="w-16 h-16 bg-rose-50 text-sakura-500 rounded-full flex items-center justify-center mx-auto">
+      <div className="text-center py-20 bg-[#0D0A0C] rounded-2xl border border-[rgba(255,45,155,0.2)] max-w-2xl mx-auto p-8 space-y-4 shadow-[0_0_25px_rgba(255,45,155,0.1)]">
+        <div className="w-16 h-16 bg-[rgba(255,45,155,0.1)] text-sakura rounded-full flex items-center justify-center mx-auto border border-[rgba(255,45,155,0.3)] shadow-[0_0_15px_rgba(255,45,155,0.2)]">
           <Banknote className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">Tu carrito está vacío</h2>
-        <p className="text-gray-500 text-sm max-w-md mx-auto">
+        <h2 className="text-2xl font-bold text-white">Tu carrito está vacío</h2>
+        <p className="text-[#A09098] text-sm max-w-md mx-auto">
           Explora nuestro catálogo para añadir productos y labiales antes de finalizar tu pedido.
         </p>
         <Link
           href="/"
-          className="inline-flex items-center space-x-2 px-6 py-3 bg-sakura-600 hover:bg-sakura-700 text-white rounded-xl text-sm font-semibold transition-all shadow-md"
+          className="inline-flex items-center space-x-2 px-6 py-3 bg-sakura hover:bg-sakura-glow text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Volver al Catálogo</span>
@@ -148,49 +144,51 @@ export default function CartPage() {
       <div className="flex items-center justify-between">
         <Link
           href="/"
-          className="inline-flex items-center space-x-1.5 text-sm font-medium text-gray-600 hover:text-sakura-600 transition-colors"
+          className="inline-flex items-center space-x-1.5 text-sm font-medium text-[#C2B6BC] hover:text-sakura transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Seguir comprando</span>
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Finalizar Pedido</h1>
+        <h1 className="text-2xl font-black text-white">Finalizar Pedido</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Columna Izquierda: Lista de productos en el carrito */}
-        <div className="lg:col-span-7 bg-white rounded-xl shadow-sm border border-rose-100 p-6 space-y-4">
-          <h2 className="font-semibold text-gray-900 border-b pb-3">Resumen de Productos ({items.length})</h2>
+        <div className="lg:col-span-7 bg-[#0D0A0C] rounded-xl border border-[rgba(255,45,155,0.2)] p-6 space-y-4 shadow-sm">
+          <h2 className="font-bold text-white border-b border-[rgba(255,255,255,0.08)] pb-3">
+            Resumen de Productos ({items.length})
+          </h2>
 
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[rgba(255,255,255,0.05)]">
             {items.map((item) => (
               <div key={item.variantId} className="py-4 flex items-center justify-between gap-4">
                 <div className="flex items-center space-x-3 min-w-0">
-                  <div className="w-12 h-12 bg-rose-50 rounded-lg flex-shrink-0 flex items-center justify-center text-rose-300 font-bold text-xs">
+                  <div className="w-12 h-12 bg-[#1A151A] border border-[rgba(255,45,155,0.3)] rounded-lg flex-shrink-0 flex items-center justify-center text-sakura font-bold text-xs">
                     {item.variantName.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{item.productName}</p>
-                    <p className="text-xs text-gray-500">Tono: {item.variantName}</p>
-                    <p className="text-xs font-semibold text-sakura-600 mt-0.5">
+                    <p className="text-sm font-semibold text-white truncate">{item.productName}</p>
+                    <p className="text-xs text-[#96878F]">Tono: {item.variantName}</p>
+                    <p className="text-xs font-bold text-sakura mt-0.5">
                       Q{parseFloat(item.price).toFixed(2)} c/u
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex items-center border border-[rgba(255,255,255,0.1)] rounded-lg bg-[#131014]">
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.variantId, item.quantity - 1)}
-                      className="px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-200 rounded-l-lg"
+                      className="px-2.5 py-1 text-xs text-gray-400 hover:text-white hover:bg-white/10 rounded-l-lg"
                     >
                       -
                     </button>
-                    <span className="px-3 py-1 text-xs font-semibold text-gray-800">{item.quantity}</span>
+                    <span className="px-3 py-1 text-xs font-bold text-white">{item.quantity}</span>
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                      className="px-2.5 py-1 text-xs text-gray-600 hover:bg-gray-200 rounded-r-lg"
+                      className="px-2.5 py-1 text-xs text-gray-400 hover:text-white hover:bg-white/10 rounded-r-lg"
                     >
                       +
                     </button>
@@ -199,7 +197,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.variantId)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors"
                     title="Eliminar producto"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -209,26 +207,28 @@ export default function CartPage() {
             ))}
           </div>
 
-          <div className="border-t pt-4 flex justify-between items-center text-sm font-medium">
-            <span className="text-gray-600">Total estimado (a confirmar por backend):</span>
-            <span className="text-xl font-bold text-gray-900">Q{totalEstimated.toFixed(2)}</span>
+          <div className="border-t border-[rgba(255,255,255,0.08)] pt-4 flex justify-between items-center text-sm font-medium">
+            <span className="text-[#A09098]">Total estimado (a confirmar por backend):</span>
+            <span className="text-2xl font-black text-sakura">Q{totalEstimated.toFixed(2)}</span>
           </div>
         </div>
 
         {/* Columna Derecha: Formulario de Checkout */}
-        <div className="lg:col-span-5 bg-white rounded-xl shadow-sm border border-rose-100 p-6 space-y-6">
-          <h2 className="font-semibold text-gray-900 border-b pb-3">Datos del Cliente y Pago</h2>
+        <div className="lg:col-span-5 bg-[#0D0A0C] rounded-xl border border-[rgba(255,45,155,0.2)] p-6 space-y-6 shadow-sm">
+          <h2 className="font-bold text-white border-b border-[rgba(255,255,255,0.08)] pb-3">
+            Datos del Cliente y Pago
+          </h2>
 
           {errorMessage && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-xs flex items-start space-x-2">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div className="bg-red-950/40 border border-red-500/40 text-red-200 px-4 py-3 rounded-lg text-xs flex items-start space-x-2">
+              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           <form onSubmit={handleCheckout} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
                 Tu Nombre Completo *
               </label>
               <input
@@ -237,12 +237,12 @@ export default function CartPage() {
                 placeholder="Ej. Sofia Méndez"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent"
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
                 Teléfono de Contacto *
               </label>
               <input
@@ -251,38 +251,38 @@ export default function CartPage() {
                 placeholder="Ej. 55551234"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent"
+                className="w-full px-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-2">
                 Método de Pago *
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
-                  className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-medium transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
                     paymentMethod === 'CASH'
-                      ? 'border-sakura-500 bg-rose-50 text-sakura-700 font-semibold shadow-sm'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      ? 'border-sakura bg-[rgba(255,45,155,0.15)] text-white shadow-[0_0_15px_rgba(255,45,155,0.25)]'
+                      : 'border-[rgba(255,255,255,0.08)] text-[#96878F] hover:bg-white/5'
                   }`}
                 >
-                  <Banknote className="w-5 h-5 mb-1 text-sakura-600" />
+                  <Banknote className="w-5 h-5 mb-1 text-sakura" />
                   <span>Efectivo</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('TRANSFER')}
-                  className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-medium transition-all ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
                     paymentMethod === 'TRANSFER'
-                      ? 'border-sakura-500 bg-rose-50 text-sakura-700 font-semibold shadow-sm'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      ? 'border-sakura bg-[rgba(255,45,155,0.15)] text-white shadow-[0_0_15px_rgba(255,45,155,0.25)]'
+                      : 'border-[rgba(255,255,255,0.08)] text-[#96878F] hover:bg-white/5'
                   }`}
                 >
-                  <CreditCard className="w-5 h-5 mb-1 text-sakura-600" />
+                  <CreditCard className="w-5 h-5 mb-1 text-sakura" />
                   <span>Transferencia</span>
                 </button>
               </div>
@@ -290,16 +290,16 @@ export default function CartPage() {
 
             {/* Subida de comprobante si es transferencia */}
             {paymentMethod === 'TRANSFER' && (
-              <div className="space-y-2 p-3 bg-amber-50/60 border border-amber-200 rounded-xl text-xs">
-                <label className="block font-semibold text-amber-900">
+              <div className="space-y-2 p-3 bg-[#131014] border border-[rgba(255,45,155,0.3)] rounded-xl text-xs">
+                <label className="block font-bold text-sakura">
                   Comprobante de Transferencia (Obligatorio) *
                 </label>
-                <div className="border-2 border-dashed border-amber-300 rounded-lg p-4 text-center bg-white hover:bg-amber-50/30 transition-colors cursor-pointer relative">
-                  <Upload className="w-6 h-6 text-amber-600 mx-auto mb-1" />
-                  <span className="text-gray-600 text-xs block">
+                <div className="border-2 border-dashed border-[rgba(255,45,155,0.4)] rounded-lg p-4 text-center bg-[#0D0A0C] hover:bg-[rgba(255,45,155,0.05)] transition-colors cursor-pointer relative">
+                  <Upload className="w-6 h-6 text-sakura mx-auto mb-1" />
+                  <span className="text-[#C2B6BC] text-xs block">
                     {paymentProofFile ? paymentProofFile.name : 'Haz clic o arrastra tu archivo (JPEG, PNG o PDF)'}
                   </span>
-                  <span className="text-[10px] text-gray-400 block mt-0.5">Máximo 5 MB</span>
+                  <span className="text-[10px] text-[#96878F] block mt-0.5">Máximo 5 MB</span>
                   <input
                     type="file"
                     required
@@ -314,10 +314,10 @@ export default function CartPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 px-4 rounded-xl text-white font-semibold text-sm transition-all shadow-md flex items-center justify-center space-x-2 ${
+              className={`w-full py-3 px-4 rounded-xl text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 ${
                 isSubmitting
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-sakura-600 hover:bg-sakura-700 active:scale-[0.98]'
+                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                  : 'bg-sakura hover:bg-sakura-glow active:scale-[0.98]'
               }`}
             >
               {isSubmitting ? (

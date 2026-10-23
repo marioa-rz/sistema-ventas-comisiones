@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import {
   ClipboardCheck,
   Search,
-  DollarSign,
-  Clock,
   CheckCircle,
   AlertCircle,
   Banknote,
@@ -57,7 +55,6 @@ export default function SellerPortalPage() {
   const [commissionsSummary, setCommissionsSummary] = useState<CommissionSummary | null>(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
-  // Acción de marcar efectivo
   const [markingCashId, setMarkingCashId] = useState<string | null>(null);
 
   const loadSellerData = useCallback(async () => {
@@ -71,7 +68,7 @@ export default function SellerPortalPage() {
       setOrders(ordersData);
       setCommissionsSummary(commsData.summary);
     } catch {
-      // Manejado silenciosamente en recargas
+      // Manejado silenciosamente
     } finally {
       setLoadingOrders(false);
     }
@@ -128,87 +125,87 @@ export default function SellerPortalPage() {
   };
 
   if (authLoading || (!user && !claimError)) {
-    return <div className="text-center py-20 text-gray-500 text-sm">Cargando portal de vendedor...</div>;
+    return <div className="text-center py-20 text-[#A09098] text-sm">Cargando portal de vendedor...</div>;
   }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header del Vendedor */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-rose-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-[#0D0A0C] rounded-2xl p-6 sm:p-8 border border-[rgba(255,45,155,0.2)] shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-sakura-600">Portal Vendedora</span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-sakura">Portal Vendedora</span>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">
             Hola, {user?.displayName}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500">
-            Reclama pedidos de tus clientes, marca pagos en efectivo y consulta tus comisiones.
+          <p className="text-xs sm:text-sm text-[#A09098]">
+            Reclama pedidos de tus clientes, marca pagos en efectivo y consulta tus comisiones en Sakura Beauty.
           </p>
         </div>
 
         {/* Resumen de Comisiones */}
         {commissionsSummary && (
           <div className="flex gap-4 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 min-w-[120px]">
-              <span className="text-[10px] font-bold text-amber-800 uppercase block">Pendientes</span>
-              <span className="text-lg font-extrabold text-amber-900">Q{commissionsSummary.pendingAmount}</span>
-              <span className="text-[10px] text-amber-700 block">{commissionsSummary.pendingCount} pedidos</span>
+            <div className="bg-[#131014] border border-amber-500/30 rounded-xl px-4 py-3 min-w-[120px]">
+              <span className="text-[10px] font-bold text-amber-400 uppercase block">Pendientes</span>
+              <span className="text-xl font-black text-amber-300">Q{commissionsSummary.pendingAmount}</span>
+              <span className="text-[10px] text-amber-400/80 block">{commissionsSummary.pendingCount} pedidos</span>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 min-w-[120px]">
-              <span className="text-[10px] font-bold text-emerald-800 uppercase block">Aprobadas</span>
-              <span className="text-lg font-extrabold text-emerald-900">Q{commissionsSummary.approvedAmount}</span>
-              <span className="text-[10px] text-emerald-700 block">{commissionsSummary.approvedCount} confirmados</span>
+            <div className="bg-[#131014] border border-emerald-500/30 rounded-xl px-4 py-3 min-w-[120px]">
+              <span className="text-[10px] font-bold text-emerald-400 uppercase block">Aprobadas</span>
+              <span className="text-xl font-black text-emerald-300">Q{commissionsSummary.approvedAmount}</span>
+              <span className="text-[10px] text-emerald-400/80 block">{commissionsSummary.approvedCount} confirmados</span>
             </div>
 
-            <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 min-w-[120px]">
-              <span className="text-[10px] font-bold text-rose-800 uppercase block">Pagadas</span>
-              <span className="text-lg font-extrabold text-rose-900">Q{commissionsSummary.paidAmount}</span>
-              <span className="text-[10px] text-rose-700 block">{commissionsSummary.paidCount} liquidadas</span>
+            <div className="bg-[#131014] border border-sakura/30 rounded-xl px-4 py-3 min-w-[120px] shadow-[0_0_15px_rgba(255,45,155,0.15)]">
+              <span className="text-[10px] font-bold text-sakura uppercase block">Pagadas</span>
+              <span className="text-xl font-black text-white">Q{commissionsSummary.paidAmount}</span>
+              <span className="text-[10px] text-[#A09098] block">{commissionsSummary.paidCount} liquidadas</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Formulario de Reclamo de Pedido */}
-      <div className="bg-gradient-to-r from-rose-500 to-sakura-600 rounded-2xl p-6 text-white shadow-md space-y-4">
+      <div className="bg-gradient-to-r from-[#1A0B14] via-[#0D0A0C] to-[#120810] border border-[rgba(255,45,155,0.3)] rounded-2xl p-6 text-white shadow-[0_0_30px_rgba(255,45,155,0.15)] space-y-4">
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-5 h-5 text-rose-200" />
+          <Sparkles className="w-5 h-5 text-sakura" />
           <h2 className="text-lg font-bold">Reclamar Pedido con Código</h2>
         </div>
-        <p className="text-xs text-rose-100 max-w-xl">
-          Pide el código al cliente (ej. <span className="font-mono bg-white/20 px-1.5 py-0.5 rounded">VNT-8F2K91</span>) e ingrésalo aquí. El sistema te asignará el pedido atómicamente si no pertenece a otro vendedor.
+        <p className="text-xs text-[#C2B6BC] max-w-xl">
+          Pide el código al cliente (ej. <span className="font-mono bg-[rgba(255,45,155,0.2)] text-sakura font-bold px-1.5 py-0.5 rounded">VNT-8F2K91</span>) e ingrésalo aquí. El sistema te asignará el pedido atómicamente.
         </p>
 
         {claimError && (
-          <div className="bg-red-500/80 text-white border border-red-300 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="bg-red-950/60 text-red-200 border border-red-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
             <span>{claimError}</span>
           </div>
         )}
 
         {claimSuccess && (
-          <div className="bg-emerald-500/90 text-white border border-emerald-300 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
-            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="bg-emerald-950/60 text-emerald-200 border border-emerald-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
+            <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-400" />
             <span>{claimSuccess}</span>
           </div>
         )}
 
         <form onSubmit={handleClaimOrder} className="flex flex-col sm:flex-row gap-3 max-w-lg">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
             <input
               type="text"
               required
               placeholder="VNT-XXXXXX"
               value={claimCode}
               onChange={(e) => setClaimCode(e.target.value.toUpperCase())}
-              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl text-gray-900 text-sm uppercase font-mono font-bold tracking-wider placeholder:normal-case placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-white"
+              className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#131014] text-white text-sm uppercase font-mono font-bold tracking-wider placeholder:normal-case placeholder:font-normal placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
             />
           </div>
           <button
             type="submit"
             disabled={isClaiming}
-            className="px-6 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white font-semibold text-xs tracking-wider uppercase transition-all shadow-md flex items-center justify-center space-x-2 active:scale-95 disabled:bg-gray-700"
+            className="px-6 py-2.5 rounded-xl bg-sakura hover:bg-sakura-glow text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 active:scale-95 disabled:bg-gray-800 disabled:text-gray-500"
           >
             {isClaiming ? (
               <span>Reclamando...</span>
@@ -223,15 +220,15 @@ export default function SellerPortalPage() {
       </div>
 
       {/* Lista de Pedidos Asignados */}
-      <div className="bg-white rounded-2xl shadow-sm border border-rose-100 p-6 space-y-4">
-        <h2 className="text-lg font-bold text-gray-900">Mis Pedidos Asignados ({orders.length})</h2>
+      <div className="bg-[#0D0A0C] rounded-2xl border border-[rgba(255,45,155,0.2)] p-6 space-y-4 shadow-sm">
+        <h2 className="text-lg font-bold text-white">Mis Pedidos Asignados ({orders.length})</h2>
 
         {loadingOrders ? (
-          <div className="text-center py-10 text-xs text-gray-500">Cargando pedidos...</div>
+          <div className="text-center py-10 text-xs text-[#A09098]">Cargando pedidos...</div>
         ) : orders.length === 0 ? (
-          <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl space-y-2">
-            <p className="text-gray-500 text-sm">No tienes pedidos asignados actualmente.</p>
-            <p className="text-xs text-gray-400">Reclama un pedido con el código que te proporcione tu cliente.</p>
+          <div className="text-center py-12 border border-dashed border-[rgba(255,255,255,0.1)] rounded-xl space-y-2">
+            <p className="text-[#A09098] text-sm">No tienes pedidos asignados actualmente.</p>
+            <p className="text-xs text-[#5C4E54]">Reclama un pedido con el código que te proporcione tu cliente.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -242,20 +239,20 @@ export default function SellerPortalPage() {
               return (
                 <div
                   key={ord.id}
-                  className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between space-y-3 hover:border-rose-200 transition-colors"
+                  className="bg-[#131014] border border-[rgba(255,255,255,0.08)] rounded-xl p-4 flex flex-col justify-between space-y-3 hover:border-[rgba(255,45,155,0.3)] transition-colors"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-sm bg-rose-50 text-sakura-700 px-2.5 py-1 rounded-lg">
+                      <span className="font-mono font-bold text-sm bg-[rgba(255,45,155,0.15)] text-sakura border border-[rgba(255,45,155,0.3)] px-2.5 py-1 rounded-lg">
                         {ord.publicCode}
                       </span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           ord.status === 'CONFIRMED'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
                             : ord.status === 'CANCELLED'
-                            ? 'bg-gray-100 text-gray-600'
-                            : 'bg-amber-100 text-amber-800'
+                            ? 'bg-gray-900 text-gray-400 border border-gray-700'
+                            : 'bg-amber-950 text-amber-300 border border-amber-500/30'
                         }`}
                       >
                         {ord.status === 'CONFIRMED'
@@ -266,46 +263,45 @@ export default function SellerPortalPage() {
                       </span>
                     </div>
 
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-[#C2B6BC]">
                       <p>
-                        <span className="font-semibold text-gray-800">Cliente:</span> {ord.customer.name} (
+                        <span className="font-semibold text-white">Cliente:</span> {ord.customer.name} (
                         {ord.customer.phone})
                       </p>
                       <p>
-                        <span className="font-semibold text-gray-800">Método de Pago:</span>{' '}
+                        <span className="font-semibold text-white">Método:</span>{' '}
                         {isCash ? 'Efectivo' : 'Transferencia'}
                       </p>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-2.5 text-[11px] text-gray-600 space-y-1">
-                      <span className="font-semibold text-gray-700 block">Productos:</span>
+                    <div className="bg-[#0D0A0C] rounded-lg p-2.5 text-[11px] text-[#A09098] space-y-1 border border-white/5">
+                      <span className="font-semibold text-white block">Productos:</span>
                       {ord.items.map((it, idx) => (
                         <div key={idx} className="flex justify-between">
                           <span>
                             {it.quantity}x {it.productNameSnapshot} ({it.variantNameSnapshot})
                           </span>
-                          <span className="font-mono">Q{parseFloat(it.subtotal).toFixed(2)}</span>
+                          <span className="font-mono text-white">Q{parseFloat(it.subtotal).toFixed(2)}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                  <div className="pt-2 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-gray-400 block font-semibold uppercase">Total / Tu Comisión</span>
+                      <span className="text-[10px] text-[#A09098] block font-semibold uppercase">Total / Tu Comisión</span>
                       <div className="text-xs">
-                        <span className="font-bold text-gray-900">Q{parseFloat(ord.totalAmount).toFixed(2)}</span>
-                        <span className="text-emerald-700 font-bold ml-1.5">
+                        <span className="font-black text-white">Q{parseFloat(ord.totalAmount).toFixed(2)}</span>
+                        <span className="text-sakura font-bold ml-1.5">
                           (+Q{parseFloat(ord.commissionAmount).toFixed(2)})
                         </span>
                       </div>
                     </div>
 
-                    {/* Botón de marcar efectivo recibido */}
                     {isCash && ord.status === 'PENDING' && (
                       <div>
                         {cashReceived ? (
-                          <span className="inline-flex items-center space-x-1 text-emerald-700 text-xs font-semibold bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200">
+                          <span className="inline-flex items-center space-x-1 text-emerald-400 text-xs font-semibold bg-emerald-950/40 px-2.5 py-1.5 rounded-lg border border-emerald-500/30">
                             <CheckCircle className="w-3.5 h-3.5" />
                             <span>Efectivo Recibido</span>
                           </span>
@@ -313,11 +309,11 @@ export default function SellerPortalPage() {
                           <button
                             onClick={() => handleMarkCashReceived(ord.id)}
                             disabled={markingCashId === ord.id}
-                            className="flex items-center space-x-1 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-all"
+                            className="flex items-center space-x-1 text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-all"
                           >
                             <Banknote className="w-3.5 h-3.5" />
                             <span>
-                              {markingCashId === ord.id ? 'Registrando...' : 'Marcar Efectivo Recibido'}
+                              {markingCashId === ord.id ? 'Registrando...' : 'Marcar Efectivo'}
                             </span>
                           </button>
                         )}
