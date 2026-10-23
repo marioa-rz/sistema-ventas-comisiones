@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, ArrowLeft, Upload, CheckCircle2, ShieldAlert, CreditCard, Banknote } from 'lucide-react';
 import { useCart } from '../../lib/cart-context';
 import { apiClient } from '../../lib/api';
+import { clearCheckoutIdempotencyKey, getCheckoutIdempotencyKey } from '../../lib/checkout-idempotency';
 
 export default function CartPage() {
   const router = useRouter();
@@ -15,8 +16,6 @@ export default function CartPage() {
   const [customerPhone, setCustomerPhone] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'TRANSFER'>('CASH');
   const [paymentProofFile, setPaymentProofFile] = useState<File | null>(null);
-
-  const [idempotencyKey] = useState<string>(() => crypto.randomUUID());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -63,8 +62,22 @@ export default function CartPage() {
       const orderPayloadItems = items.map((i) => ({
         variantId: i.variantId,
         quantity: i.quantity,
-        unitPrice: i.price,
       }));
+      const requestFingerprint = JSON.stringify({
+        customerName: customerName.trim(),
+        customerPhone: customerPhone.trim(),
+        paymentMethod,
+        items: orderPayloadItems,
+        proof: paymentProofFile
+          ? {
+              name: paymentProofFile.name,
+              size: paymentProofFile.size,
+              type: paymentProofFile.type,
+              lastModified: paymentProofFile.lastModified,
+            }
+          : null,
+      });
+      const idempotencyKey = getCheckoutIdempotencyKey(sessionStorage, requestFingerprint);
 
       let result: { publicCode: string; total: string; payment: { method: string } };
 
@@ -103,12 +116,9 @@ export default function CartPage() {
         );
       }
 
+      clearCheckoutIdempotencyKey(sessionStorage);
       clearCart();
-      router.push(
-        `/order-confirmation?code=${result.publicCode}&total=${result.total}&method=${result.payment.method}&name=${encodeURIComponent(
-          customerName.trim(),
-        )}`,
-      );
+      router.push(`/order-confirmation?code=${encodeURIComponent(result.publicCode)}`);
     } catch (err: any) {
       setErrorMessage(
         err.message || 'Ocurrió un error al procesar tu pedido. Si persiste, conserva tu clave de reintento.',

@@ -42,7 +42,7 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
       headers,
     });
   } catch (networkError: any) {
-    if (networkError?.name === 'TypeError' && networkError?.message === 'Failed to fetch') {
+    if (networkError instanceof TypeError) {
       throw new ApiError(
         0,
         `No se pudo conectar con la API en ${API_BASE_URL}. Asegúrate de que el backend esté iniciado con 'npm run dev' y escuchando en el puerto 3000.`,
@@ -89,4 +89,34 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
   }
 
   return response.text() as unknown as Promise<T>;
+}
+
+export async function apiDownload(endpoint: string, token: string): Promise<Blob> {
+  const url = `${API_BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      headers: { Accept: 'text/csv', Authorization: `Bearer ${token}` },
+    });
+  } catch (networkError) {
+    if (networkError instanceof TypeError) {
+      throw new ApiError(0, `No se pudo conectar con la API en ${API_BASE_URL}.`);
+    }
+    throw networkError;
+  }
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type') || '';
+    let message = `HTTP Error ${response.status}`;
+    let payload: unknown;
+    if (contentType.includes('application/json')) {
+      payload = await response.json().catch(() => undefined);
+      const error = payload as { message?: string | string[] } | undefined;
+      if (typeof error?.message === 'string') message = error.message;
+      else if (Array.isArray(error?.message)) message = error.message.join(', ');
+    }
+    throw new ApiError(response.status, message, payload);
+  }
+
+  return response.blob();
 }

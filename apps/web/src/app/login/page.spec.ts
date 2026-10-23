@@ -9,4 +9,9 @@ describe('LoginPage password visibility', () => {
     expect(source).toContain("type={showPassword ? 'text' : 'password'}");
     expect(source).toContain('aria-label={showPassword ? \'Ocultar contraseña\' : \'Mostrar contraseña\'}');
   });
+
+  it('replaces the login route after successful authentication', () => {
+    expect(source).toContain("router.replace('/admin')");
+    expect(source).toContain("router.replace('/seller')");
+  });
 });

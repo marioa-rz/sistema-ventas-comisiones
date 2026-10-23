@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  TrendingUp,
   CheckCircle,
   XCircle,
   Eye,
@@ -11,7 +10,12 @@ import {
   Download,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
-import { apiClient } from '../../lib/api';
+import { apiClient, apiDownload } from '../../lib/api';
+import {
+  firstDayOfLocalMonth,
+  formatLocalDateInput,
+  paymentVerificationAvailability,
+} from './admin-view-model';
 
 interface DashboardMetrics {
   sales: {
@@ -61,6 +65,7 @@ export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'PENDING' | 'CONFIRMED' | 'ALL'>('PENDING');
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Modal de Comprobante
   const [signedUrlData, setSignedUrlData] = useState<{ url: string; orderCode: string } | null>(null);
@@ -71,15 +76,14 @@ export default function AdminDashboardPage() {
 
   // Rango de fechas para exportar CSV
   const [reportStartDate, setReportStartDate] = useState(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d.toISOString().slice(0, 10);
+    return firstDayOfLocalMonth(new Date());
   });
-  const [reportEndDate, setReportEndDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [reportEndDate, setReportEndDate] = useState(() => formatLocalDateInput(new Date()));
 
   const loadAdminData = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
+    setLoadError(null);
     try {
       const [dash, ords] = await Promise.all([
         apiClient<DashboardMetrics>('admin/dashboard', { token }),
@@ -87,8 +91,12 @@ export default function AdminDashboardPage() {
       ]);
       setDashboard(dash);
       setOrders(ords);
-    } catch {
-      // Manejado silenciosamente
+    } catch (error: unknown) {
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la información del panel de administración.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +104,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'ADMIN')) {
-      router.push('/login');
+      router.replace('/login');
     } else if (user && token) {
       void loadAdminData();
     }
@@ -145,13 +153,10 @@ export default function AdminDashboardPage() {
 
   const handleDownloadCsv = () => {
     if (!token) return;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
-    const csvUrl = `${apiUrl.replace(/\/$/, '')}/admin/reports/sales?startDate=${reportStartDate}&endDate=${reportEndDate}&format=csv`;
-
-    fetch(csvUrl, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.blob())
+    apiDownload(
+      `admin/reports/sales?startDate=${reportStartDate}&endDate=${reportEndDate}&format=csv`,
+      token,
+    )
       .then((blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -161,10 +166,12 @@ export default function AdminDashboardPage() {
         a.click();
         a.remove();
       })
-      .catch(() => alert('Error al exportar reporte CSV.'));
+      .catch((error: unknown) =>
+        alert(error instanceof Error ? error.message : 'Error al exportar reporte CSV.'),
+      );
   };
 
-  if (authLoading || (!user && isLoading)) {
+  if (authLoading || !user || user.role !== 'ADMIN') {
     return <div className="text-center py-20 text-[#A09098] text-sm">Cargando panel de administración...</div>;
   }
 
@@ -175,6 +182,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm text-red-200">
+          {loadError}
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#0D0A0C] p-6 rounded-2xl border border-[rgba(255,45,155,0.2)] shadow-sm">
         <div>
@@ -284,7 +296,13 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.05)]">
-              {filteredOrders.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-10 text-center text-[#A09098]">
+                    Cargando pedidos y métricas...
+                  </td>
+                </tr>
+              ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-[#5C4E54]">
                     No hay pedidos con el filtro seleccionado.
@@ -295,6 +313,7 @@ export default function AdminDashboardPage() {
                   const isTransfer = ord.payment?.method === 'TRANSFER';
                   const hasProof = ord.payment?.proofs && ord.payment.proofs.length > 0;
                   const isProcessing = processingPaymentId === ord.id;
+                  const verification = paymentVerificationAvailability(ord);
 
                   return (
                     <tr key={ord.id} className="hover:bg-white/[0.02] transition-colors">
@@ -348,8 +367,9 @@ export default function AdminDashboardPage() {
                           <>
                             <button
                               onClick={() => handleVerifyPayment(ord.id, 'VERIFIED')}
-                              disabled={isProcessing}
-                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all"
+                              disabled={isProcessing || !verification.canVerify}
+                              title={verification.reason ?? 'Confirmar venta'}
+                              className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:bg-gray-800 disabled:text-gray-500 disabled:shadow-none"
                             >
                               <CheckCircle className="w-3.5 h-3.5" />
                               <span>Confirmar Venta</span>
@@ -366,6 +386,11 @@ export default function AdminDashboardPage() {
                               </button>
                             )}
                           </>
+                        )}
+                        {ord.status === 'PENDING' && ord.seller && verification.reason && (
+                          <span className="block pt-1 text-[10px] text-amber-300">
+                            {verification.reason}
+                          </span>
                         )}
                       </td>
                     </tr>

@@ -1,16 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { normalizeCartQuantity, parseStoredCart, type CartItem } from './cart-storage';
 
-export interface CartItem {
-  variantId: string;
-  sku: string;
-  productName: string;
-  variantName: string;
-  price: string;
-  quantity: number;
-  imagePath?: string | null;
-}
+export type { CartItem } from './cart-storage';
 
 interface CartContextType {
   items: CartItem[];
@@ -34,7 +27,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
-        setItems(JSON.parse(stored));
+        setItems(parseStoredCart(stored));
       }
     } catch {
       // Ignorar errores de parsing
@@ -58,12 +51,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (existing) {
           copy[index] = {
             ...existing,
-            quantity: existing.quantity + quantity,
+            quantity: normalizeCartQuantity(existing.quantity + quantity),
           };
         }
         return copy;
       }
-      return [...prev, { ...item, quantity }];
+      return [...prev, { ...item, quantity: normalizeCartQuantity(quantity) }];
     });
   };
 
@@ -77,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (i.variantId === variantId ? { ...i, quantity } : i)),
+      prev.map((i) => (i.variantId === variantId ? { ...i, quantity: normalizeCartQuantity(quantity) } : i)),
     );
   };
 

@@ -1,17 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ShoppingBag, User, LogOut, LayoutDashboard, ClipboardList } from 'lucide-react';
 import { useCart } from '../lib/cart-context';
 import { useAuth } from '../lib/auth-context';
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { totalItemsCount } = useCart();
   const { user, logout } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      router.replace('/login');
+      router.refresh();
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-[#0D0A0C]/90 backdrop-blur-md border-b border-[rgba(255,45,155,0.2)] shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
@@ -95,8 +108,10 @@ export function Navbar() {
                 {user.displayName} ({user.role === 'ADMIN' ? 'Admin' : 'Vendedora'})
               </span>
               <button
-                onClick={() => void logout()}
-                className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5"
+                onClick={() => void handleLogout()}
+                disabled={isLoggingOut}
+                aria-label="Cerrar sesión"
+                className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5 disabled:cursor-wait disabled:opacity-50"
                 title="Cerrar sesión"
               >
                 <LogOut className="w-4 h-4" />

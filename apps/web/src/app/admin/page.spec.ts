@@ -15,4 +15,10 @@ describe('AdminDashboardPage API contract', () => {
     expect(source).toContain('url: result.url');
     expect(source).not.toContain('result.signedUrl');
   });
+
+  it('shows data-loading failures instead of silently rendering an empty dashboard', () => {
+    expect(source).toContain('setLoadError(');
+    expect(source).toContain('{loadError && (');
+    expect(source).not.toContain('// Manejado silenciosamente');
+  });
 });

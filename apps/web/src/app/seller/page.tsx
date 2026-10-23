@@ -54,12 +54,14 @@ export default function SellerPortalPage() {
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [commissionsSummary, setCommissionsSummary] = useState<CommissionSummary | null>(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [markingCashId, setMarkingCashId] = useState<string | null>(null);
 
   const loadSellerData = useCallback(async () => {
     if (!token) return;
     setLoadingOrders(true);
+    setLoadError(null);
     try {
       const [ordersData, commsData] = await Promise.all([
         apiClient<SellerOrder[]>('seller/orders', { token }),
@@ -67,8 +69,12 @@ export default function SellerPortalPage() {
       ]);
       setOrders(ordersData);
       setCommissionsSummary(commsData.summary);
-    } catch {
-      // Manejado silenciosamente
+    } catch (error: unknown) {
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la información del portal de vendedora.',
+      );
     } finally {
       setLoadingOrders(false);
     }
@@ -76,7 +82,7 @@ export default function SellerPortalPage() {
 
   useEffect(() => {
     if (!authLoading && (!user || user.role !== 'SELLER')) {
-      router.push('/login');
+      router.replace('/login');
     } else if (user && token) {
       void loadSellerData();
     }
@@ -124,12 +130,17 @@ export default function SellerPortalPage() {
     }
   };
 
-  if (authLoading || (!user && !claimError)) {
+  if (authLoading || !user || user.role !== 'SELLER') {
     return <div className="text-center py-20 text-[#A09098] text-sm">Cargando portal de vendedor...</div>;
   }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm text-red-200">
+          {loadError}
+        </div>
+      )}
       {/* Header del Vendedor */}
       <div className="bg-[#0D0A0C] rounded-2xl p-6 sm:p-8 border border-[rgba(255,45,155,0.2)] shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
