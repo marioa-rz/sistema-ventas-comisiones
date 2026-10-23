@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { CommissionsService } from '../src/commissions/commissions.service';
+import { formatGuatemalaDate } from '../src/common/time/guatemala-time';
 import type { PrismaService } from '../src/database/prisma.service';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { OrdersService } from '../src/orders/orders.service';
@@ -147,7 +148,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
     expect(Number(dashboard.commissions.paidAmount)).toBeGreaterThanOrEqual(20);
 
     // 9. Sales report in range
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = formatGuatemalaDate(new Date());
     const report = await reports.getSalesReport({
       startDate: todayStr,
       endDate: todayStr,
