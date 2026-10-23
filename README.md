@@ -77,6 +77,7 @@ No ejecute migraciones ni pruebas de integración contra producción. El seed so
 - [Arquitectura](docs/architecture/overview.md)
 - [Modelo de datos](docs/architecture/data-model.md)
 - [Seguridad y Supabase](docs/architecture/supabase-security.md)
+- [Guía de integración para Next.js](docs/architecture/frontend-integration-guide.md)
 - [Ejemplos HTTP](docs/api/requests.http)
 - [Decisiones](docs/decisions/README.md)
 
