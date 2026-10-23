@@ -6,6 +6,7 @@ export interface Environment {
   supabaseJwtIssuer: string;
   supabaseJwtAudience: string;
   supabaseJwksUrl: string;
+  corsOrigin?: string;
 }
 
 export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
@@ -47,6 +48,8 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     throw new Error('SUPABASE_JWT_ISSUER must use HTTPS in production');
   }
 
+  const corsOrigin = source.CORS_ORIGIN?.trim();
+
   return {
     databaseUrl,
     nodeEnv: nodeEnv as Environment['nodeEnv'],
@@ -55,6 +58,7 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     supabaseJwtIssuer,
     supabaseJwtAudience,
     supabaseJwksUrl,
+    corsOrigin,
   };
 }
 

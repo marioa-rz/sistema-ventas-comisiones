@@ -13,6 +13,15 @@ async function bootstrap(): Promise<void> {
 
   if (environment.trustProxyHops > 0) app.set('trust proxy', environment.trustProxyHops);
 
+  app.enableCors({
+    origin: environment.corsOrigin
+      ? environment.corsOrigin.split(',').map((o) => o.trim())
+      : true,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'Idempotency-Key'],
+  });
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({

@@ -35,10 +35,21 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
 
   const url = `${API_BASE_URL.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
 
-  const response = await fetch(url, {
-    ...restOptions,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...restOptions,
+      headers,
+    });
+  } catch (networkError: any) {
+    if (networkError?.name === 'TypeError' && networkError?.message === 'Failed to fetch') {
+      throw new ApiError(
+        0,
+        `No se pudo conectar con la API en ${API_BASE_URL}. Asegúrate de que el backend esté iniciado con 'npm run dev' y escuchando en el puerto 3000.`,
+      );
+    }
+    throw networkError;
+  }
 
   const contentType = response.headers.get('content-type') || '';
 
