@@ -8,11 +8,14 @@ import {
   Eye,
   Calendar,
   Download,
+  Search,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { apiClient, apiDownload } from '../../lib/api';
 import {
   firstDayOfLocalMonth,
+  filterAdminOrders,
   formatLocalDateInput,
   paymentVerificationAvailability,
 } from './admin-view-model';
@@ -64,6 +67,7 @@ export default function AdminDashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardMetrics | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<'PENDING' | 'CONFIRMED' | 'ALL'>('PENDING');
+  const [orderCodeQuery, setOrderCodeQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -87,7 +91,7 @@ export default function AdminDashboardPage() {
     try {
       const [dash, ords] = await Promise.all([
         apiClient<DashboardMetrics>('admin/dashboard', { token }),
-        apiClient<AdminOrder[]>('admin/orders?limit=50', { token }),
+        apiClient<AdminOrder[]>('admin/orders?limit=100', { token }),
       ]);
       setDashboard(dash);
       setOrders(ords);
@@ -175,10 +179,7 @@ export default function AdminDashboardPage() {
     return <div className="text-center py-20 text-[#A09098] text-sm">Cargando panel de administración...</div>;
   }
 
-  const filteredOrders = orders.filter((o) => {
-    if (selectedFilter === 'ALL') return true;
-    return o.status === selectedFilter;
-  });
+  const filteredOrders = filterAdminOrders(orders, selectedFilter, orderCodeQuery);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
@@ -265,7 +266,38 @@ export default function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-[rgba(255,255,255,0.08)] pb-4">
           <h2 className="text-lg font-bold text-white">Gestión de Pedidos</h2>
 
-          <div className="flex gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+            <div className="relative min-w-0 sm:w-64">
+              <label htmlFor="order-code-search" className="sr-only">
+                Buscar venta por código
+              </label>
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#A09098]" />
+              <input
+                id="order-code-search"
+                type="search"
+                value={orderCodeQuery}
+                maxLength={10}
+                placeholder="Buscar código VNT-..."
+                onChange={(event) => {
+                  const value = event.target.value.toUpperCase();
+                  setOrderCodeQuery(value);
+                  if (value.trim()) setSelectedFilter('ALL');
+                }}
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#131014] py-1.5 pl-9 pr-8 text-xs font-semibold uppercase text-white placeholder:normal-case placeholder:text-[#5C4E54] focus:border-sakura focus:outline-none focus:ring-1 focus:ring-sakura"
+              />
+              {orderCodeQuery && (
+                <button
+                  type="button"
+                  onClick={() => setOrderCodeQuery('')}
+                  aria-label="Limpiar búsqueda"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#A09098] hover:bg-white/5 hover:text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-2">
             {(['PENDING', 'CONFIRMED', 'ALL'] as const).map((filter) => (
               <button
                 key={filter}
@@ -279,6 +311,7 @@ export default function AdminDashboardPage() {
                 {filter === 'PENDING' ? 'Pendientes de Pago' : filter === 'CONFIRMED' ? 'Confirmados' : 'Todos'}
               </button>
             ))}
+            </div>
           </div>
         </div>
 
@@ -305,7 +338,9 @@ export default function AdminDashboardPage() {
               ) : filteredOrders.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-8 text-[#5C4E54]">
-                    No hay pedidos con el filtro seleccionado.
+                    {orderCodeQuery
+                      ? `No se encontró una venta con el código ${orderCodeQuery}.`
+                      : 'No hay pedidos con el filtro seleccionado.'}
                   </td>
                 </tr>
               ) : (

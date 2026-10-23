@@ -37,3 +37,14 @@ export function formatLocalDateInput(date: Date) {
 export function firstDayOfLocalMonth(date: Date) {
   return formatLocalDateInput(new Date(date.getFullYear(), date.getMonth(), 1));
 }
+
+export function filterAdminOrders<
+  T extends { publicCode: string; status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' },
+>(orders: T[], selectedStatus: 'PENDING' | 'CONFIRMED' | 'ALL', codeQuery: string) {
+  const normalizedCode = codeQuery.trim().toUpperCase();
+  return orders.filter((order) => {
+    const matchesStatus = selectedStatus === 'ALL' || order.status === selectedStatus;
+    const matchesCode = !normalizedCode || order.publicCode.toUpperCase().includes(normalizedCode);
+    return matchesStatus && matchesCode;
+  });
+}
