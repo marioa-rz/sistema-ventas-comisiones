@@ -9,4 +9,8 @@ describe('SellerPortalPage failure states', () => {
     expect(source).toContain('{loadError && (');
     expect(source).not.toContain('// Manejado silenciosamente');
   });
+
+  it('explains who closes a pending transfer sale', () => {
+    expect(source).toContain('Pendiente de revisión administrativa');
+  });
 });

@@ -330,6 +330,23 @@ export default function SellerPortalPage() {
                         )}
                       </div>
                     )}
+
+                    {!isCash && ord.status === 'PENDING' && (
+                      <span
+                        className={`inline-flex max-w-[190px] items-center space-x-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                          ord.payment.status === 'REJECTED'
+                            ? 'border-red-500/30 bg-red-950/40 text-red-300'
+                            : 'border-amber-500/30 bg-amber-950/40 text-amber-300'
+                        }`}
+                      >
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>
+                          {ord.payment.status === 'REJECTED'
+                            ? 'Comprobante rechazado por administración'
+                            : 'Pendiente de revisión administrativa'}
+                        </span>
+                      </span>
+                    )}
                   </div>
                 </div>
               );

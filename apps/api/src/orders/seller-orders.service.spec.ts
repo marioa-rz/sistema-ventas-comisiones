@@ -53,8 +53,29 @@ describe('SellerOrdersService', () => {
 
     await expect(
       new SellerOrdersService(prismaWithTransaction(transaction)).claim(sellerId, 'VNT-ABC123'),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ message: 'Este pedido ya fue reclamado por otra vendedora.' }),
+    });
     expect(transaction.commission.create).not.toHaveBeenCalled();
+  });
+
+  it('rejects a repeated claim by the same seller instead of reporting a second success', async () => {
+    const transaction = {
+      order: {
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+        findUnique: vi.fn().mockResolvedValue({ id: 'order-1', sellerId, status: 'PENDING' }),
+      },
+      commission: { create: vi.fn() },
+      auditLog: { create: vi.fn() },
+    };
+
+    await expect(
+      new SellerOrdersService(prismaWithTransaction(transaction)).claim(sellerId, 'VNT-ABC123'),
+    ).rejects.toMatchObject({
+      response: expect.objectContaining({ message: 'Este pedido ya está asignado a tu cuenta.' }),
+    });
+    expect(transaction.commission.create).not.toHaveBeenCalled();
+    expect(transaction.auditLog.create).not.toHaveBeenCalled();
   });
 
   it('does not reveal an order that does not belong to the seller', async () => {
