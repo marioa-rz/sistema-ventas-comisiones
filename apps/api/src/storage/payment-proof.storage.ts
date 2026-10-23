@@ -53,6 +53,25 @@ export class PaymentProofStorage {
     }
   }
 
+  async createSignedUrl(path: string): Promise<{ url: string; expiresIn: number }> {
+    const configuration = this.configuration();
+    const expiresIn = 300;
+    const response = await fetch(this.signedUrlEndpoint(configuration, path), {
+      method: 'POST',
+      headers: {
+        ...this.authenticationHeaders(configuration),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ expiresIn }),
+    });
+    if (!response.ok) throw new ServiceUnavailableException('Payment proof URL could not be created');
+    const payload = (await response.json()) as { signedURL?: unknown };
+    if (typeof payload.signedURL !== 'string' || !payload.signedURL.startsWith('/object/sign/')) {
+      throw new ServiceUnavailableException('Payment proof URL response is invalid');
+    }
+    return { url: `${configuration.supabaseUrl}/storage/v1${payload.signedURL}`, expiresIn };
+  }
+
   private validate(file: PaymentProofFile): string {
     if (!file.originalname.trim() || file.originalname.length > 255) {
       throw new BadRequestException('Payment proof filename is too long');
@@ -91,6 +110,9 @@ export class PaymentProofStorage {
     if (!supabaseUrl || !apiKey || !bucket) {
       throw new ServiceUnavailableException('Payment proof storage is not configured');
     }
+    if ((secretKey && !secretKey.startsWith('sb_secret_')) || (!secretKey && !apiKey.startsWith('eyJ'))) {
+      throw new ServiceUnavailableException('Payment proof storage credentials are invalid');
+    }
     return { supabaseUrl, apiKey, bucket, usesLegacyKey: !secretKey };
   }
 
@@ -104,5 +126,10 @@ export class PaymentProofStorage {
   private objectUrl(configuration: ReturnType<PaymentProofStorage['configuration']>, path: string): string {
     const encodedPath = path.split('/').map(encodeURIComponent).join('/');
     return `${configuration.supabaseUrl}/storage/v1/object/${encodeURIComponent(configuration.bucket)}/${encodedPath}`;
+  }
+
+  private signedUrlEndpoint(configuration: ReturnType<PaymentProofStorage['configuration']>, path: string): string {
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+    return `${configuration.supabaseUrl}/storage/v1/object/sign/${encodeURIComponent(configuration.bucket)}/${encodedPath}`;
   }
 }

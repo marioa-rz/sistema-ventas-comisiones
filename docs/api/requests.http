@@ -1,5 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @accessToken = REPLACE_WITH_SUPABASE_ACCESS_TOKEN
+@sellerToken = REPLACE_WITH_SELLER_ACCESS_TOKEN
+@adminToken = REPLACE_WITH_ADMIN_ACCESS_TOKEN
+@orderId = REPLACE_WITH_ORDER_UUID
+@publicCode = VNT-ABC123
 
 ### Liveness
 GET {{baseUrl}}/health
@@ -69,4 +73,57 @@ Content-Type: application/json
   "sku": "DEMO-NUEVO",
   "name": "Tono de prueba",
   "price": "99.99"
+}
+
+### Reclamar pedido (SELLER)
+POST {{baseUrl}}/seller/orders/claim
+Authorization: Bearer {{sellerToken}}
+Content-Type: application/json
+
+{
+  "publicCode": "{{publicCode}}"
+}
+
+### Pedidos propios (SELLER)
+GET {{baseUrl}}/seller/orders?status=PENDING&limit=20&offset=0
+Authorization: Bearer {{sellerToken}}
+
+### Marcar efectivo recibido sin confirmar venta (SELLER)
+POST {{baseUrl}}/seller/orders/{{orderId}}/cash-received
+Authorization: Bearer {{sellerToken}}
+
+### Pedidos generales pendientes (ADMIN)
+GET {{baseUrl}}/admin/orders?status=PENDING&paymentStatus=PENDING
+Authorization: Bearer {{adminToken}}
+
+### Verificar pago y confirmar venta (ADMIN)
+PATCH {{baseUrl}}/admin/orders/{{orderId}}/verify-payment
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "decision": "VERIFIED"
+}
+
+### Rechazar pago (ADMIN)
+PATCH {{baseUrl}}/admin/orders/{{orderId}}/verify-payment
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "decision": "REJECTED",
+  "rejectionReason": "Comprobante ilegible"
+}
+
+### URL temporal del comprobante más reciente (ADMIN)
+GET {{baseUrl}}/admin/orders/{{orderId}}/payment-proof-url
+Authorization: Bearer {{adminToken}}
+
+### Cancelar pedido pendiente (ADMIN)
+PATCH {{baseUrl}}/admin/orders/{{orderId}}/cancel
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "reason": "Cliente desistió"
 }

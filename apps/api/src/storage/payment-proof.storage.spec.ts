@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PaymentProofStorage } from './payment-proof.storage';
 
@@ -18,7 +18,7 @@ describe('PaymentProofStorage', () => {
 
   it('uploads an allowed proof to a non-predictable private path', async () => {
     vi.stubEnv('SUPABASE_URL', 'https://project.supabase.co');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'server-secret');
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'eyJlegacy-service-role');
     vi.stubEnv('SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET', 'payment-proofs');
     const request = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', request);
@@ -37,10 +37,21 @@ describe('PaymentProofStorage', () => {
       ),
       expect.objectContaining({
         method: 'POST',
-        headers: expect.objectContaining({ Authorization: 'Bearer server-secret', 'Content-Type': 'image/png' }),
+        headers: expect.objectContaining({ Authorization: 'Bearer eyJlegacy-service-role', 'Content-Type': 'image/png' }),
         body: file.buffer,
       }),
     );
+  });
+
+  it('fails closed when a publishable or malformed key is configured as the backend secret', async () => {
+    vi.stubEnv('SUPABASE_URL', 'https://project.supabase.co');
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'sb_publishable_public');
+    vi.stubEnv('SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET', 'payment-proofs');
+    const request = vi.fn();
+    vi.stubGlobal('fetch', request);
+
+    await expect(new PaymentProofStorage().upload(file)).rejects.toBeInstanceOf(ServiceUnavailableException);
+    expect(request).not.toHaveBeenCalled();
   });
 
   it('uses a modern Supabase secret key only in the apikey header', async () => {
@@ -74,7 +85,7 @@ describe('PaymentProofStorage', () => {
 
   it('deletes the exact uploaded object through the documented single-object endpoint', async () => {
     vi.stubEnv('SUPABASE_URL', 'https://project.supabase.co');
-    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'server-secret');
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'eyJlegacy-service-role');
     vi.stubEnv('SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET', 'payment-proofs');
     const request = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', request);
@@ -84,6 +95,27 @@ describe('PaymentProofStorage', () => {
     expect(request).toHaveBeenCalledWith(
       'https://project.supabase.co/storage/v1/object/payment-proofs/orders/pending/proof.png',
       expect.objectContaining({ method: 'DELETE' }),
+    );
+  });
+
+  it('creates a short-lived signed URL for a private proof', async () => {
+    vi.stubEnv('SUPABASE_URL', 'https://project.supabase.co');
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'sb_secret_backend');
+    vi.stubEnv('SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET', 'payment-proofs');
+    const request = vi.fn().mockResolvedValue(
+      new Response('{"signedURL":"/object/sign/payment-proofs/orders/pending/proof.pdf?token=signed"}', {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal('fetch', request);
+
+    await expect(new PaymentProofStorage().createSignedUrl('orders/pending/proof.pdf')).resolves.toEqual({
+      url: 'https://project.supabase.co/storage/v1/object/sign/payment-proofs/orders/pending/proof.pdf?token=signed',
+      expiresIn: 300,
+    });
+    expect(request).toHaveBeenCalledWith(
+      'https://project.supabase.co/storage/v1/object/sign/payment-proofs/orders/pending/proof.pdf',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify({ expiresIn: 300 }) }),
     );
   });
 });
