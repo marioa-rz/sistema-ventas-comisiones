@@ -4,7 +4,7 @@ Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, c
 
 ## Estado actual
 
-Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora el catálogo público, administración auditada de categorías/productos/variantes y creación transaccional e idempotente de pedidos. No se incluyen todavía las pantallas de Next.js.
+Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora catálogo y pedidos; la fase 6 añade reclamo atómico por vendedores, propiedad de pedidos, revisión de pagos, confirmación de ventas, cancelaciones y corrección controlada de comprobantes. No se incluyen todavía las pantallas de Next.js.
 
 ## Requisitos
 
@@ -41,6 +41,12 @@ La API limita por IP las rutas públicas a 120 solicitudes por minuto y el check
 En producción configure explícitamente `TRUST_PROXY_HOPS` con la cantidad de proxies confiables delante de NestJS (`0` si recibe tráfico directo). Esto permite que el límite por IP use la dirección correcta sin confiar ciegamente en encabezados reenviados.
 
 La subida privada de comprobantes requiere `SUPABASE_SECRET_KEY`, disponible solo en el proceso backend. `SUPABASE_SERVICE_ROLE_KEY` se acepta temporalmente para proyectos antiguos. Nunca exponga estas credenciales en Next.js ni las incluya en el repositorio.
+
+## Vendedores y pagos
+
+Las rutas `/api/seller/orders` exigen un perfil activo con rol `SELLER`. El vendedor se obtiene siempre del JWT validado y puede reclamar un código pendiente, consultar únicamente pedidos propios y marcar efectivo recibido sin confirmar la venta.
+
+Las rutas `/api/admin/orders` exigen rol `ADMIN`. La verificación confirma en una sola transacción el pago, el pedido y la comisión; el rechazo conserva la venta pendiente. Un comprobante rechazado puede reemplazarse de forma controlada y su consulta utiliza una URL firmada de cinco minutos. Las cancelaciones solo se permiten mientras el pedido está pendiente.
 
 ## Base de datos
 

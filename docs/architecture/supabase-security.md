@@ -18,7 +18,7 @@ NestJS verifica tokens con el JWKS asimétrico publicado por Supabase. Se valida
 
 - `product-images`: público solo para recursos publicados.
 - `payment-proofs`: privado, rutas aleatorias, MIME permitido (`image/jpeg`, `image/png`, `application/pdf`) y límite inicial de 5 MiB.
-- La API genera URL firmada corta solo para vendedor propietario o administración.
+- La API genera una URL firmada de cinco minutos únicamente para administración autenticada.
 - Storage y PostgreSQL no comparten transacción: subir primero a una ruta temporal, persistir metadatos y promover; si falla la base, intentar borrar el objeto y registrar la limpieza pendiente sin incluir datos sensibles.
 - La API usa `SUPABASE_SECRET_KEY` exclusivamente en backend para escribir comprobantes privados; mantiene compatibilidad temporal con `SUPABASE_SERVICE_ROLE_KEY`. La clave publicable no sustituye esta credencial y no concede acceso administrativo.
 - `POST /api/orders` acepta el comprobante dentro de la misma solicitud `multipart/form-data`; se valida MIME y un máximo de 5 MiB antes de subirlo. Si la transacción SQL falla, la API intenta eliminar el objeto temporal.
