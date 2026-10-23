@@ -14,10 +14,12 @@ import { useAuth } from '../../lib/auth-context';
 import { apiClient } from '../../lib/api';
 
 interface DashboardMetrics {
-  salesToday: { totalAmount: string; ordersCount: number };
-  salesWeek: { totalAmount: string; ordersCount: number };
-  salesMonth: { totalAmount: string; ordersCount: number };
-  salesYear: { totalAmount: string; ordersCount: number };
+  sales: {
+    today: { totalAmount: string; ordersCount: number };
+    week: { totalAmount: string; ordersCount: number };
+    month: { totalAmount: string; ordersCount: number };
+    year: { totalAmount: string; ordersCount: number };
+  };
   ordersByStatus: { PENDING: number; CONFIRMED: number; CANCELLED: number };
   commissions: {
     pendingAmount: string;
@@ -25,7 +27,12 @@ interface DashboardMetrics {
     paidAmount: string;
     totalAmount: string;
   };
-  topSellers: Array<{ sellerId: string; sellerName: string; amount: string; count: number }>;
+  topSellers: Array<{
+    sellerId: string;
+    sellerName: string;
+    confirmedSalesAmount: string;
+    confirmedOrdersCount: number;
+  }>;
 }
 
 interface AdminOrder {
@@ -99,10 +106,10 @@ export default function AdminDashboardPage() {
     if (!token) return;
     setLoadingProofId(order.id);
     try {
-      const result = await apiClient<{ signedUrl: string }>(`admin/orders/${order.id}/payment-proof-url`, {
+      const result = await apiClient<{ url: string }>(`admin/orders/${order.id}/payment-proof-url`, {
         token,
       });
-      setSignedUrlData({ url: result.signedUrl, orderCode: order.publicCode });
+      setSignedUrlData({ url: result.url, orderCode: order.publicCode });
     } catch (err: any) {
       alert(err.message || 'No se pudo obtener el comprobante.');
     } finally {
@@ -209,25 +216,25 @@ export default function AdminDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-sm space-y-1">
             <span className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider">Ventas Hoy</span>
-            <div className="text-2xl font-black text-white">Q{dashboard.salesToday.totalAmount}</div>
+            <div className="text-2xl font-black text-white">Q{dashboard.sales.today.totalAmount}</div>
             <span className="text-xs text-emerald-400 font-medium">
-              {dashboard.salesToday.ordersCount} ventas confirmadas
+              {dashboard.sales.today.ordersCount} ventas confirmadas
             </span>
           </div>
 
           <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,255,255,0.08)] shadow-sm space-y-1">
             <span className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider">Esta Semana</span>
-            <div className="text-2xl font-black text-white">Q{dashboard.salesWeek.totalAmount}</div>
+            <div className="text-2xl font-black text-white">Q{dashboard.sales.week.totalAmount}</div>
             <span className="text-xs text-emerald-400 font-medium">
-              {dashboard.salesWeek.ordersCount} ventas confirmadas
+              {dashboard.sales.week.ordersCount} ventas confirmadas
             </span>
           </div>
 
           <div className="bg-[#0D0A0C] p-5 rounded-2xl border border-[rgba(255,45,155,0.3)] shadow-[0_0_20px_rgba(255,45,155,0.1)] space-y-1">
             <span className="text-[10px] font-bold text-sakura uppercase tracking-wider">Este Mes</span>
-            <div className="text-2xl font-black text-sakura">Q{dashboard.salesMonth.totalAmount}</div>
+            <div className="text-2xl font-black text-sakura">Q{dashboard.sales.month.totalAmount}</div>
             <span className="text-xs text-emerald-400 font-medium">
-              {dashboard.salesMonth.ordersCount} ventas confirmadas
+              {dashboard.sales.month.ordersCount} ventas confirmadas
             </span>
           </div>
 

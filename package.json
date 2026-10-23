@@ -17,7 +17,7 @@
     "dev": "npm run start:dev -w @sakura/api",
     "dev:web": "npm run dev -w @sakura/web",
     "lint": "npm run lint -w @sakura/api && npm run lint -w @sakura/web",
-    "test": "npm run test -w @sakura/api",
+    "test": "npm run test -w @sakura/api && npm run test -w @sakura/web",
     "test:integration": "npm run test:integration -w @sakura/api",
     "typecheck": "npm run typecheck -w @sakura/api && npm run typecheck -w @sakura/web",
     "prisma:validate": "npm run prisma:validate -w @sakura/api",
