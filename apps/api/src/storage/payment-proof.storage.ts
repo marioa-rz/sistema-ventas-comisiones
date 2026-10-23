@@ -24,8 +24,7 @@ export class PaymentProofStorage {
     const response = await fetch(this.objectUrl(configuration, path), {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${configuration.serviceRoleKey}`,
-        apikey: configuration.serviceRoleKey,
+        ...this.authenticationHeaders(configuration),
         'Content-Type': file.mimetype,
         'x-upsert': 'false',
       },
@@ -47,10 +46,7 @@ export class PaymentProofStorage {
     const configuration = this.configuration();
     const response = await fetch(this.objectUrl(configuration, path), {
       method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${configuration.serviceRoleKey}`,
-        apikey: configuration.serviceRoleKey,
-      },
+      headers: this.authenticationHeaders(configuration),
     });
     if (!response.ok && response.status !== 404) {
       throw new ServiceUnavailableException('Payment proof cleanup failed');
@@ -88,12 +84,21 @@ export class PaymentProofStorage {
 
   private configuration() {
     const supabaseUrl = process.env.SUPABASE_URL?.trim().replace(/\/$/, '');
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    const secretKey = process.env.SUPABASE_SECRET_KEY?.trim();
+    const legacyServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+    const apiKey = secretKey ?? legacyServiceRoleKey;
     const bucket = process.env.SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET?.trim();
-    if (!supabaseUrl || !serviceRoleKey || !bucket) {
+    if (!supabaseUrl || !apiKey || !bucket) {
       throw new ServiceUnavailableException('Payment proof storage is not configured');
     }
-    return { supabaseUrl, serviceRoleKey, bucket };
+    return { supabaseUrl, apiKey, bucket, usesLegacyKey: !secretKey };
+  }
+
+  private authenticationHeaders(configuration: ReturnType<PaymentProofStorage['configuration']>) {
+    return {
+      apikey: configuration.apiKey,
+      ...(configuration.usesLegacyKey ? { Authorization: `Bearer ${configuration.apiKey}` } : {}),
+    };
   }
 
   private objectUrl(configuration: ReturnType<PaymentProofStorage['configuration']>, path: string): string {

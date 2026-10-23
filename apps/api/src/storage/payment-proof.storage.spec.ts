@@ -43,6 +43,20 @@ describe('PaymentProofStorage', () => {
     );
   });
 
+  it('uses a modern Supabase secret key only in the apikey header', async () => {
+    vi.stubEnv('SUPABASE_URL', 'https://project.supabase.co');
+    vi.stubEnv('SUPABASE_SECRET_KEY', 'sb_secret_backend');
+    vi.stubEnv('SUPABASE_STORAGE_PAYMENT_PROOF_BUCKET', 'payment-proofs');
+    const request = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', request);
+
+    await new PaymentProofStorage().upload(file);
+
+    const options = request.mock.calls[0]?.[1] as RequestInit;
+    expect(options.headers).toMatchObject({ apikey: 'sb_secret_backend' });
+    expect(options.headers).not.toHaveProperty('Authorization');
+  });
+
   it.each([
     [{ ...file, mimetype: 'text/html' }, 'Only JPEG, PNG, or PDF payment proofs are allowed'],
     [{ ...file, size: 5 * 1024 * 1024 + 1 }, 'Payment proof exceeds the 5 MiB limit'],

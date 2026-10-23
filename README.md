@@ -40,7 +40,7 @@ La API limita por IP las rutas públicas a 120 solicitudes por minuto y el check
 
 En producción configure explícitamente `TRUST_PROXY_HOPS` con la cantidad de proxies confiables delante de NestJS (`0` si recibe tráfico directo). Esto permite que el límite por IP use la dirección correcta sin confiar ciegamente en encabezados reenviados.
 
-La subida privada de comprobantes requiere `SUPABASE_SERVICE_ROLE_KEY`, disponible solo en el proceso backend. Nunca exponga esta credencial en Next.js ni la incluya en el repositorio.
+La subida privada de comprobantes requiere `SUPABASE_SECRET_KEY`, disponible solo en el proceso backend. `SUPABASE_SERVICE_ROLE_KEY` se acepta temporalmente para proyectos antiguos. Nunca exponga estas credenciales en Next.js ni las incluya en el repositorio.
 
 ## Base de datos
 
