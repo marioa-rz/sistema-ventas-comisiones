@@ -30,11 +30,11 @@ const parseItems = ({ value }: { value: unknown }) => {
 };
 
 export class CreateOrderItemDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ type: String, format: 'uuid' })
   @IsUUID()
   variantId!: string;
 
-  @ApiProperty({ minimum: 1, maximum: 100 })
+  @ApiProperty({ type: Number, minimum: 1, maximum: 100 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
@@ -42,21 +42,21 @@ export class CreateOrderItemDto {
   quantity!: number;
 
   // Accepted only so an untrusted client value can be explicitly ignored by the service.
-  @ApiPropertyOptional({ description: 'Ignored; the API always reads the current database price.' })
+  @ApiPropertyOptional({ type: String, description: 'Ignored; the API always reads the current database price.' })
   @IsOptional()
   @IsString()
   unitPrice?: string;
 }
 
 export class CreateOrderDto {
-  @ApiProperty({ maxLength: 120 })
+  @ApiProperty({ type: String, maxLength: 120 })
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
   @Transform(trim)
   customerName!: string;
 
-  @ApiProperty({ minLength: 7, maxLength: 32 })
+  @ApiProperty({ type: String, minLength: 7, maxLength: 32 })
   @IsString()
   @MinLength(7)
   @MaxLength(32)

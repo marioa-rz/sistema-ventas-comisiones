@@ -1,8 +1,20 @@
 import 'reflect-metadata';
+import { Body, Controller, Module, Post } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { describe, expect, it } from 'vitest';
 import { CreateOrderDto } from './orders.dto';
+
+@Controller('orders-schema-test')
+class OrdersSchemaController {
+  @Post()
+  create(@Body() _order: CreateOrderDto): void {}
+}
+
+@Module({ controllers: [OrdersSchemaController] })
+class OrdersSchemaModule {}
 
 describe('CreateOrderDto', () => {
   it('transforms multipart item JSON into validated order items', async () => {
@@ -43,5 +55,13 @@ describe('CreateOrderDto', () => {
     });
 
     await expect(validate(dto)).resolves.not.toEqual([]);
+  });
+
+  it('generates its OpenAPI schema when running through tsx', async () => {
+    const app = await NestFactory.create(OrdersSchemaModule, { logger: false });
+
+    expect(() => SwaggerModule.createDocument(app, new DocumentBuilder().build())).not.toThrow();
+
+    await app.close();
   });
 });

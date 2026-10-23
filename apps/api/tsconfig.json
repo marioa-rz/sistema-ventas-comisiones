@@ -19,6 +19,9 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vitest/globals"]
   },
+  "ts-node": {
+    "experimentalResolver": true
+  },
   "include": ["src/**/*.ts", "test/**/*.ts", "prisma/**/*.ts", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }
