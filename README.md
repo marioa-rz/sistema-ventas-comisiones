@@ -4,7 +4,7 @@ Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, c
 
 ## Estado actual
 
-Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora catálogo y pedidos; la fase 6 añade reclamo atómico por vendedores, propiedad de pedidos, revisión de pagos, confirmación de ventas, cancelaciones y corrección controlada de comprobantes. La fase 7 implementa comisiones aprobadas por venta confirmada, liquidaciones agrupadas idempotentes con prevención de doble pago, dashboard ejecutivo y reportes de ventas con corte en zona horaria `America/Guatemala` y exportación CSV. No se incluyen todavía las pantallas de Next.js.
+Las fases 0–4 establecen la estructura, el modelo relacional, la API NestJS y la autenticación asimétrica con Supabase. La fase 5 incorpora catálogo y pedidos con snapshot de precios; la fase 6 añade reclamo atómico por vendedores, propiedad de pedidos, revisión de pagos, confirmación de ventas, cancelaciones y corrección controlada de comprobantes. La fase 7 implementa comisiones aprobadas por venta confirmada, liquidaciones agrupadas idempotentes con prevención de doble pago, dashboard ejecutivo y reportes de ventas con corte en zona horaria `America/Guatemala` y exportación CSV. La fase 8 culmina el backend del MVP con la administración de usuarios y vendedores, consulta de rendimiento comercial individual auditado, formalización completa de la guía de integración para Next.js y verificación exhaustiva de seguridad y tipos. El backend se encuentra 100% operativo y probado; el frontend en Next.js está listo para construirse en la siguiente fase.
 
 ## Requisitos
 
