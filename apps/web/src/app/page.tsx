@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Search, ShoppingBag, Check, Sparkles, Filter } from 'lucide-react';
 import { apiClient } from '../lib/api';
 import { useCart } from '../lib/cart-context';
@@ -55,7 +56,6 @@ export default function CatalogPage() {
         setCategories(cats);
         setProducts(prods);
 
-        // Preseleccionar la primera variante disponible para cada producto
         const initialVariants: Record<string, string> = {};
         for (const p of prods) {
           const firstAvailable = p.variants.find((v) => v.isAvailable) || p.variants[0];
@@ -98,7 +98,6 @@ export default function CatalogPage() {
       imagePath: variant.imagePath || product.mainImagePath,
     });
 
-    // Feedback visual
     setAddedAnimation((prev) => ({ ...prev, [product.id]: true }));
     setTimeout(() => {
       setAddedAnimation((prev) => ({ ...prev, [product.id]: false }));
@@ -107,46 +106,46 @@ export default function CatalogPage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-rose-500 via-sakura-500 to-pink-500 text-white p-8 sm:p-12 shadow-lg">
+      {/* Hero Banner Dark con estilo Sakura Beauty */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1A0B14] via-[#0D0A0C] to-[#120810] border border-[rgba(255,45,155,0.3)] text-white p-8 sm:p-12 shadow-[0_0_35px_rgba(255,45,155,0.15)]">
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-semibold backdrop-blur-md">
+          <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[rgba(255,45,155,0.15)] border border-[rgba(255,45,155,0.35)] text-sakura text-xs font-semibold backdrop-blur-md">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Colección Exclusiva</span>
+            <span>Colección Oficial</span>
           </span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight">
-            Sakura Nails & Beauty
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight">
+            Sakura <span className="text-sakura">Beauty</span>
           </h1>
-          <p className="text-rose-100 text-sm sm:text-base">
+          <p className="text-[#C2B6BC] text-sm sm:text-base leading-relaxed">
             Descubre nuestra línea de esmaltes, tratamientos y cosméticos. Haz tu pedido en línea sin necesidad de registrarte y compártelo con tu vendedora.
           </p>
         </div>
-        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-[rgba(255,45,155,0.18)] rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-rose-100">
+      <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between bg-[#0D0A0C] p-4 rounded-xl border border-[rgba(255,45,155,0.2)] shadow-sm">
         <div className="relative flex-1">
-          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             placeholder="Buscar por producto, tono o descripción..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent transition-all"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] placeholder-[#96878F] text-sm focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura transition-all"
           />
         </div>
 
         <div className="flex items-center space-x-2">
-          <Filter className="w-4 h-4 text-gray-500" />
+          <Filter className="w-4 h-4 text-sakura" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-sakura-500 focus:border-transparent"
+            className="px-3 py-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] text-sm bg-[#131014] text-[#F8F0F5] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
           >
             <option value="">Todas las categorías</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
+              <option key={cat.id} value={cat.id} className="bg-[#131014] text-[#F8F0F5]">
                 {cat.name}
               </option>
             ))}
@@ -157,21 +156,21 @@ export default function CatalogPage() {
       {/* Estados de carga o error */}
       {loading && (
         <div className="text-center py-16 space-y-3">
-          <div className="w-10 h-10 border-4 border-sakura-200 border-t-sakura-600 rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-gray-500">Cargando catálogo oficial...</p>
+          <div className="w-10 h-10 border-4 border-[rgba(255,45,155,0.2)] border-t-sakura rounded-full animate-spin mx-auto shadow-[0_0_15px_rgba(255,45,155,0.5)]" />
+          <p className="text-sm text-[#A09098]">Cargando catálogo oficial...</p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+        <div className="bg-red-950/40 border border-red-500/40 text-red-200 px-4 py-3 rounded-xl text-sm">
           {error}
         </div>
       )}
 
       {/* Grid de Productos */}
       {!loading && !error && filteredProducts.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
-          <p className="text-gray-500 text-sm">No encontramos productos con los filtros seleccionados.</p>
+        <div className="text-center py-16 bg-[#0D0A0C] rounded-xl border border-dashed border-[rgba(255,255,255,0.1)]">
+          <p className="text-[#96878F] text-sm">No encontramos productos con los filtros seleccionados.</p>
         </div>
       )}
 
@@ -185,24 +184,26 @@ export default function CatalogPage() {
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-xl shadow-sm border border-rose-100 hover:shadow-md transition-shadow overflow-hidden flex flex-col justify-between"
+                className="bg-[#0D0A0C] rounded-xl border border-[rgba(255,255,255,0.08)] hover:border-[rgba(255,45,155,0.4)] transition-all overflow-hidden flex flex-col justify-between group hover:shadow-[0_0_20px_rgba(255,45,155,0.15)]"
               >
                 <div>
                   {/* Imagen del producto */}
-                  <div className="relative aspect-square bg-rose-50/50 flex items-center justify-center overflow-hidden">
+                  <div className="relative aspect-square bg-[#131014] flex items-center justify-center overflow-hidden">
                     {product.mainImagePath ? (
                       <img
                         src={product.mainImagePath}
                         alt={product.name}
-                        className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
                       <div className="text-center p-4">
-                        <Sparkles className="w-12 h-12 text-rose-300 mx-auto mb-2" />
-                        <span className="text-xs text-rose-400 font-medium">Sakura Nails</span>
+                        <div className="relative w-16 h-16 mx-auto mb-2 opacity-70 group-hover:opacity-100 transition-opacity">
+                          <Image src="/sakura-logo.png" alt="Sakura" fill className="object-contain" />
+                        </div>
+                        <span className="text-xs text-sakura font-semibold">Sakura Beauty</span>
                       </div>
                     )}
-                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/90 text-sakura-700 backdrop-blur-sm border border-rose-100">
+                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#080608]/85 text-[#F8F0F5] backdrop-blur-sm border border-[rgba(255,45,155,0.3)]">
                       {product.category.name}
                     </span>
                   </div>
@@ -210,11 +211,11 @@ export default function CatalogPage() {
                   {/* Detalle */}
                   <div className="p-4 space-y-3">
                     <div>
-                      <h2 className="font-semibold text-gray-900 line-clamp-1" title={product.name}>
+                      <h2 className="font-bold text-[#F8F0F5] line-clamp-1 group-hover:text-sakura transition-colors" title={product.name}>
                         {product.name}
                       </h2>
                       {product.description && (
-                        <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                        <p className="text-xs text-[#96878F] line-clamp-2 mt-1">
                           {product.description}
                         </p>
                       )}
@@ -223,7 +224,7 @@ export default function CatalogPage() {
                     {/* Selector de tonos / variantes */}
                     {product.variants.length > 0 && (
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wider block">
+                        <label className="text-[10px] font-bold text-[#A09098] uppercase tracking-wider block">
                           Tono / Variante
                         </label>
                         <select
@@ -234,10 +235,10 @@ export default function CatalogPage() {
                               [product.id]: e.target.value,
                             }))
                           }
-                          className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-sakura-500"
+                          className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] focus:outline-none focus:border-sakura"
                         >
                           {product.variants.map((v) => (
-                            <option key={v.id} value={v.id} disabled={!v.isAvailable}>
+                            <option key={v.id} value={v.id} disabled={!v.isAvailable} className="bg-[#131014]">
                               {v.name} {!v.isAvailable ? '(Agotado)' : ''}
                             </option>
                           ))}
@@ -248,10 +249,10 @@ export default function CatalogPage() {
                 </div>
 
                 {/* Precio y acción */}
-                <div className="p-4 pt-0 border-t border-gray-50 mt-2 flex items-center justify-between">
+                <div className="p-4 pt-0 border-t border-[rgba(255,255,255,0.05)] mt-2 flex items-center justify-between">
                   <div>
-                    <span className="text-xs text-gray-400 block font-medium">Precio</span>
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className="text-[10px] text-[#96878F] block font-semibold uppercase">Precio</span>
+                    <span className="text-lg font-black text-white">
                       Q{currentVariant ? parseFloat(currentVariant.price).toFixed(2) : '0.00'}
                     </span>
                   </div>
@@ -259,12 +260,12 @@ export default function CatalogPage() {
                   <button
                     onClick={() => handleAddToCart(product)}
                     disabled={!currentVariant || !currentVariant.isAvailable}
-                    className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${
+                    className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm ${
                       isAdded
                         ? 'bg-emerald-600 text-white'
                         : !currentVariant || !currentVariant.isAvailable
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-sakura-600 hover:bg-sakura-700 text-white active:scale-95'
+                        ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                        : 'bg-sakura hover:bg-sakura-glow text-white active:scale-95 shadow-[0_0_15px_rgba(255,45,155,0.3)]'
                     }`}
                   >
                     {isAdded ? (

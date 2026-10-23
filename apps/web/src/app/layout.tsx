@@ -7,8 +7,11 @@ import { Navbar } from '../components/navbar';
 import { Footer } from '../components/footer';
 
 export const metadata: Metadata = {
-  title: 'Sakura Nails - Catálogo y Pedidos',
-  description: 'Catálogo de productos de belleza, esmaltes y cosméticos con gestión de pedidos y comisiones.',
+  title: 'Sakura Beauty - Catálogo y Pedidos',
+  description: 'Catálogo oficial de productos, esmaltes y cosméticos de Sakura Beauty.',
+  icons: {
+    icon: '/sakura-logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -17,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="flex flex-col min-h-screen antialiased text-gray-900 bg-slate-50/50">
+    <html lang="es" className="dark">
+      <body className="flex flex-col min-h-screen antialiased bg-[#080608] text-[#F8F0F5]">
         <AuthProvider>
           <CartProvider>
             <Navbar />
