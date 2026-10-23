@@ -7,7 +7,7 @@ Monolito modular para catálogo público, pedidos, asignación a vendedores, ver
 ## Stack fijado
 
 - Node.js 24 LTS, TypeScript 5.9.3 y npm workspaces.
-- NestJS 11.2.5, REST, DTOs y OpenAPI.
+- NestJS 11.2.7, REST, DTOs y OpenAPI.
 - PostgreSQL en Supabase y Prisma ORM 7.10.1 con `@prisma/adapter-pg`.
 - Vitest para pruebas unitarias e integración; GitHub Actions para CI.
 

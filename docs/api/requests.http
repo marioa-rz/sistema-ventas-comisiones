@@ -10,3 +10,63 @@ GET {{baseUrl}}/health/ready
 ### Perfil autenticado
 GET {{baseUrl}}/auth/me
 Authorization: Bearer {{accessToken}}
+
+### Categorías públicas
+GET {{baseUrl}}/categories
+
+### Catálogo público con búsqueda
+GET {{baseUrl}}/products?search=labial&category=labiales&limit=20&offset=0
+
+### Crear pedido en efectivo
+POST {{baseUrl}}/orders
+Content-Type: application/json
+Idempotency-Key: checkout-demo-001
+
+{
+  "customerName": "Cliente de prueba",
+  "customerPhone": "55550000",
+  "paymentMethod": "CASH",
+  "items": [
+    {
+      "variantId": "30000000-0000-4000-8000-000000000001",
+      "quantity": 2,
+      "unitPrice": "0.01"
+    }
+  ]
+}
+
+### Crear categoría (ADMIN)
+POST {{baseUrl}}/admin/categories
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Cuidado de uñas",
+  "slug": "cuidado-de-unas"
+}
+
+### Catálogo completo para administración
+GET {{baseUrl}}/admin/catalog
+Authorization: Bearer {{accessToken}}
+
+### Crear producto (ADMIN)
+POST {{baseUrl}}/admin/products
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "categoryId": "10000000-0000-4000-8000-000000000001",
+  "name": "Producto de prueba",
+  "description": "Datos ficticios"
+}
+
+### Crear variante (ADMIN)
+POST {{baseUrl}}/admin/products/20000000-0000-4000-8000-000000000001/variants
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "sku": "DEMO-NUEVO",
+  "name": "Tono de prueba",
+  "price": "99.99"
+}
