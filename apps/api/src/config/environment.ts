@@ -2,6 +2,7 @@ export interface Environment {
   databaseUrl: string;
   nodeEnv: 'development' | 'test' | 'production';
   port: number;
+  trustProxyHops: number;
   supabaseJwtIssuer: string;
   supabaseJwtAudience: string;
   supabaseJwksUrl: string;
@@ -23,6 +24,15 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     throw new Error('PORT must be an integer between 1 and 65535');
   }
 
+  const trustProxyValue = source.TRUST_PROXY_HOPS?.trim();
+  if (nodeEnv === 'production' && !trustProxyValue) {
+    throw new Error('TRUST_PROXY_HOPS must be configured in production');
+  }
+  const trustProxyHops = Number(trustProxyValue ?? 0);
+  if (!Number.isInteger(trustProxyHops) || trustProxyHops < 0 || trustProxyHops > 10) {
+    throw new Error('TRUST_PROXY_HOPS must be an integer between 0 and 10');
+  }
+
   const supabaseJwtIssuer = required(source, 'SUPABASE_JWT_ISSUER').replace(/\/$/, '');
   const supabaseJwtAudience = required(source, 'SUPABASE_JWT_AUDIENCE');
   const supabaseJwksUrl = required(source, 'SUPABASE_JWKS_URL');
@@ -41,6 +51,7 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     databaseUrl,
     nodeEnv: nodeEnv as Environment['nodeEnv'],
     port,
+    trustProxyHops,
     supabaseJwtIssuer,
     supabaseJwtAudience,
     supabaseJwksUrl,

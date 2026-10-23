@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ApiExceptionFilter } from './common/filters/api-exception.filter';
@@ -8,7 +9,9 @@ import { loadEnvironment } from './config/environment';
 
 async function bootstrap(): Promise<void> {
   const environment = loadEnvironment();
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+
+  if (environment.trustProxyHops > 0) app.set('trust proxy', environment.trustProxyHops);
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(

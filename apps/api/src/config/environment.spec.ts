@@ -25,4 +25,13 @@ describe('loadEnvironment', () => {
       }),
     ).toThrow('SUPABASE_JWKS_URL must be the discovery endpoint for SUPABASE_JWT_ISSUER');
   });
+
+  it('requires an explicit trusted proxy hop count in production', () => {
+    expect(() => loadEnvironment({ ...validEnvironment, NODE_ENV: 'production' })).toThrow(
+      'TRUST_PROXY_HOPS must be configured in production',
+    );
+    expect(loadEnvironment({ ...validEnvironment, NODE_ENV: 'production', TRUST_PROXY_HOPS: '1' })).toMatchObject({
+      trustProxyHops: 1,
+    });
+  });
 });

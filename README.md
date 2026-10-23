@@ -4,7 +4,7 @@ Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, c
 
 ## Estado actual
 
-Las fases 0–2 preparan la estructura, el modelo relacional y la migración inicial. La base de NestJS incluye configuración, Prisma y un endpoint de salud como siguiente hito. No se incluyen todavía las pantallas de Next.js.
+Las fases 0–4 preparan la estructura, el modelo relacional, la API NestJS y la autenticación con Supabase. La fase 5 incorpora el catálogo público, administración auditada de categorías/productos/variantes y creación transaccional e idempotente de pedidos. No se incluyen todavía las pantallas de Next.js.
 
 ## Requisitos
 
@@ -29,6 +29,18 @@ Swagger estará disponible en `http://localhost:3000/api/docs` y salud en `GET /
 La API valida tokens de Supabase Auth mediante el JWKS asimétrico del proyecto. Configura `SUPABASE_JWT_ISSUER`, `SUPABASE_JWT_AUDIENCE` y `SUPABASE_JWKS_URL`; esta última debe ser exactamente el discovery endpoint del emisor. El endpoint `GET /api/auth/me` comprueba la firma y después obtiene rol y estado activo desde `app_users`.
 
 Los proyectos que todavía firman exclusivamente con el secreto legado HS256 deben migrar a signing keys asimétricas antes de usar esta integración; el backend no recibe ni almacena el secreto JWT.
+
+## Catálogo y pedidos
+
+El catálogo público está disponible en `GET /api/categories`, `GET /api/products` y `GET /api/products/:id`. La administración usa rutas bajo `/api/admin` y exige un JWT cuyo perfil activo tenga rol `ADMIN`.
+
+`POST /api/orders` exige `Idempotency-Key` de 16 a 128 caracteres seguros. La misma clave solo puede reutilizarse con el mismo cliente, carrito, método y comprobante. Los precios enviados por el cliente no se consideran confiables: la API vuelve a leer las variantes disponibles y conserva precio, nombre, SKU y comisión como snapshots. Efectivo acepta JSON; transferencia usa `multipart/form-data` y exige el archivo `paymentProof` (JPEG, PNG o PDF, máximo 5 MiB).
+
+La API limita por IP las rutas públicas a 120 solicitudes por minuto y el checkout a 10 solicitudes por minuto. El contador en memoria corresponde al despliegue MVP de una sola instancia; un despliegue horizontal deberá usar almacenamiento compartido para el throttling.
+
+En producción configure explícitamente `TRUST_PROXY_HOPS` con la cantidad de proxies confiables delante de NestJS (`0` si recibe tráfico directo). Esto permite que el límite por IP use la dirección correcta sin confiar ciegamente en encabezados reenviados.
+
+La subida privada de comprobantes requiere `SUPABASE_SERVICE_ROLE_KEY`, disponible solo en el proceso backend. Nunca exponga esta credencial en Next.js ni la incluya en el repositorio.
 
 ## Base de datos
 
