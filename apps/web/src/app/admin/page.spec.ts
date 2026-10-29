@@ -21,4 +21,22 @@ describe('AdminDashboardPage API contract', () => {
     expect(source).toContain('{loadError && (');
     expect(source).not.toContain('// Manejado silenciosamente');
   });
+
+  it('requires an accessible confirmation dialog before financial decisions', () => {
+    expect(source).not.toContain("prompt('Ingresa el motivo");
+    expect(source).toContain('role="dialog"');
+    expect(source).toContain('aria-modal="true"');
+    expect(source).toContain('Confirmar venta');
+    expect(source).toContain('Rechazar pago');
+    expect(source).toContain('trapPaymentDialogFocus');
+    expect(source).toContain('decisionTriggerRef.current?.focus()');
+    expect(source).toContain('disabled={processingPaymentId === pendingDecision.orderId}');
+  });
+
+  it('labels report dates and exposes the CSV loading state', () => {
+    expect(source).toContain('htmlFor="report-start-date"');
+    expect(source).toContain('htmlFor="report-end-date"');
+    expect(source).toContain('disabled={isDownloadingReport}');
+    expect(source).toContain("isDownloadingReport ? 'Descargando…' : 'Descargar CSV'");
+  });
 });

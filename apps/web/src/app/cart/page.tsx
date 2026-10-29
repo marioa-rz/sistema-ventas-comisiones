@@ -134,13 +134,13 @@ export default function CartPage() {
         <div className="w-16 h-16 bg-[rgba(255,45,155,0.1)] text-sakura rounded-full flex items-center justify-center mx-auto border border-[rgba(255,45,155,0.3)] shadow-[0_0_15px_rgba(255,45,155,0.2)]">
           <Banknote className="w-8 h-8" />
         </div>
-        <h2 className="text-2xl font-bold text-white">Tu carrito está vacío</h2>
+        <h1 className="text-2xl font-bold text-white">Tu carrito está vacío</h1>
         <p className="text-[#A09098] text-sm max-w-md mx-auto">
           Explora nuestro catálogo para añadir productos y labiales antes de finalizar tu pedido.
         </p>
         <Link
           href="/"
-          className="inline-flex items-center space-x-2 px-6 py-3 bg-sakura hover:bg-sakura-glow text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)]"
+          className="inline-flex items-center space-x-2 px-6 py-3 bg-sakura-700 hover:bg-sakura-600 text-white rounded-xl text-sm font-bold transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)]"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Volver al Catálogo</span>
@@ -230,7 +230,7 @@ export default function CartPage() {
           </h2>
 
           {errorMessage && (
-            <div className="bg-red-950/40 border border-red-500/40 text-red-200 px-4 py-3 rounded-lg text-xs flex items-start space-x-2">
+            <div role="alert" className="bg-red-950/40 border border-red-500/40 text-red-200 px-4 py-3 rounded-lg text-xs flex items-start space-x-2">
               <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
               <span>{errorMessage}</span>
             </div>
@@ -238,41 +238,51 @@ export default function CartPage() {
 
           <form onSubmit={handleCheckout} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
+              <label htmlFor="customer-name" className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
                 Tu Nombre Completo *
               </label>
               <input
+                id="customer-name"
                 type="text"
                 required
+                autoComplete="name"
+                aria-describedby="customer-name-help"
                 placeholder="Ej. Sofia Méndez"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className="w-full px-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
+              <p id="customer-name-help" className="mt-1 text-[11px] text-[#A09098]">Escribe el nombre de quien recibirá el pedido.</p>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
+              <label htmlFor="customer-phone" className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-1">
                 Teléfono de Contacto *
               </label>
               <input
+                id="customer-phone"
                 type="tel"
                 required
-                placeholder="Ej. 55551234"
+                inputMode="tel"
+                autoComplete="tel"
+                aria-describedby="customer-phone-help"
+                placeholder="Ej. 4272-7527"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full px-3.5 py-2 text-sm rounded-lg border border-[rgba(255,255,255,0.08)] bg-[#131014] text-[#F8F0F5] placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
               />
+              <p id="customer-phone-help" className="mt-1 text-[11px] text-[#A09098]">Incluye un número de Guatemala donde podamos coordinar la entrega.</p>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-2">
+            <fieldset>
+              <legend className="block text-xs font-bold text-[#A09098] uppercase tracking-wider mb-2">
                 Método de Pago *
-              </label>
+              </legend>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
+                  aria-pressed={paymentMethod === 'CASH'}
                   className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
                     paymentMethod === 'CASH'
                       ? 'border-sakura bg-[rgba(255,45,155,0.15)] text-white shadow-[0_0_15px_rgba(255,45,155,0.25)]'
@@ -286,6 +296,7 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('TRANSFER')}
+                  aria-pressed={paymentMethod === 'TRANSFER'}
                   className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition-all ${
                     paymentMethod === 'TRANSFER'
                       ? 'border-sakura bg-[rgba(255,45,155,0.15)] text-white shadow-[0_0_15px_rgba(255,45,155,0.25)]'
@@ -296,12 +307,12 @@ export default function CartPage() {
                   <span>Transferencia</span>
                 </button>
               </div>
-            </div>
+            </fieldset>
 
             {/* Subida de comprobante si es transferencia */}
             {paymentMethod === 'TRANSFER' && (
               <div className="space-y-2 p-3 bg-[#131014] border border-[rgba(255,45,155,0.3)] rounded-xl text-xs">
-                <label className="block font-bold text-sakura">
+                <label htmlFor="payment-proof" className="block font-bold text-sakura">
                   Comprobante de Transferencia (Obligatorio) *
                 </label>
                 <div className="border-2 border-dashed border-[rgba(255,45,155,0.4)] rounded-lg p-4 text-center bg-[#0D0A0C] hover:bg-[rgba(255,45,155,0.05)] transition-colors cursor-pointer relative">
@@ -311,6 +322,7 @@ export default function CartPage() {
                   </span>
                   <span className="text-[10px] text-[#96878F] block mt-0.5">Máximo 5 MB</span>
                   <input
+                    id="payment-proof"
                     type="file"
                     required
                     accept="image/jpeg,image/png,application/pdf"
@@ -327,7 +339,7 @@ export default function CartPage() {
               className={`w-full py-3 px-4 rounded-xl text-white font-bold text-sm transition-all shadow-[0_0_20px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 ${
                 isSubmitting
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-sakura hover:bg-sakura-glow active:scale-[0.98]'
+                  : 'bg-sakura-700 hover:bg-sakura-600 active:scale-[0.98]'
               }`}
             >
               {isSubmitting ? (

@@ -36,6 +36,16 @@ const config: Config = {
           'border-bright': 'rgba(255, 45, 155, 0.58)',
           'border-subtle': 'rgba(255, 255, 255, 0.09)',
         },
+        catalog: {
+          canvas: 'var(--catalog-canvas)',
+          surface: 'var(--catalog-surface)',
+          blush: 'var(--catalog-blush)',
+          border: 'var(--catalog-border)',
+          ink: 'var(--catalog-ink)',
+          muted: 'var(--catalog-muted)',
+          accent: 'var(--catalog-accent)',
+          'accent-strong': 'var(--catalog-accent-strong)',
+        },
       },
       boxShadow: {
         'sakura-glow': '0 0 20px rgba(255, 45, 155, 0.28)',

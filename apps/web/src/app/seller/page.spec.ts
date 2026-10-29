@@ -13,4 +13,16 @@ describe('SellerPortalPage failure states', () => {
   it('explains who closes a pending transfer sale', () => {
     expect(source).toContain('Pendiente de revisión administrativa');
   });
+
+  it('labels the claim code and announces claim results', () => {
+    expect(source).toContain('htmlFor="claim-code"');
+    expect(source).toContain('id="claim-code"');
+    expect(source).toContain('role="alert"');
+    expect(source).toContain('role="status"');
+  });
+
+  it('uses stable skeletons and progress indicators for asynchronous work', () => {
+    expect(source).toContain('animate-pulse');
+    expect(source).toContain('animate-spin');
+  });
 });

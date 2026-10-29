@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   CheckCircle,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { apiClient, apiDownload } from '../../lib/api';
+import { PageSkeleton } from '../../components/page-skeleton';
 import {
   firstDayOfLocalMonth,
   filterAdminOrders,
@@ -77,12 +78,22 @@ export default function AdminDashboardPage() {
 
   // Decisión de Pago
   const [processingPaymentId, setProcessingPaymentId] = useState<string | null>(null);
+  const [pendingDecision, setPendingDecision] = useState<{
+    orderId: string;
+    orderCode: string;
+    decision: 'VERIFIED' | 'REJECTED';
+  } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const paymentDialogRef = useRef<HTMLDivElement>(null);
+  const decisionTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   // Rango de fechas para exportar CSV
   const [reportStartDate, setReportStartDate] = useState(() => {
     return firstDayOfLocalMonth(new Date());
   });
   const [reportEndDate, setReportEndDate] = useState(() => formatLocalDateInput(new Date()));
+  const [isDownloadingReport, setIsDownloadingReport] = useState(false);
 
   const loadAdminData = useCallback(async () => {
     if (!token) return;
@@ -129,54 +140,98 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleVerifyPayment = async (orderId: string, decision: 'VERIFIED' | 'REJECTED') => {
-    if (!token) return;
+  useEffect(() => {
+    if (!pendingDecision && !signedUrlData) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (pendingDecision && processingPaymentId === pendingDecision.orderId) return;
+      setPendingDecision(null);
+      setSignedUrlData(null);
+      setRejectionReason('');
+      setActionError(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [pendingDecision, processingPaymentId, signedUrlData]);
 
-    let rejectionReason: string | undefined;
-    if (decision === 'REJECTED') {
-      const reason = prompt('Ingresa el motivo del rechazo del comprobante/pago:');
-      if (!reason || !reason.trim()) return;
-      rejectionReason = reason.trim();
+  useEffect(() => {
+    if (!pendingDecision) return;
+    return () => decisionTriggerRef.current?.focus();
+  }, [pendingDecision]);
+
+  const trapPaymentDialogFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Tab') return;
+    const focusable = paymentDialogRef.current?.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), textarea:not([disabled])',
+    );
+    if (!focusable?.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    if (!token || !pendingDecision) return;
+    const reason = rejectionReason.trim();
+    if (pendingDecision.decision === 'REJECTED' && !reason) {
+      setActionError('Escribe el motivo del rechazo para que quede registrado.');
+      return;
     }
 
-    setProcessingPaymentId(orderId);
+    setActionError(null);
+    setProcessingPaymentId(pendingDecision.orderId);
     try {
-      await apiClient(`admin/orders/${orderId}/verify-payment`, {
+      await apiClient(`admin/orders/${pendingDecision.orderId}/verify-payment`, {
         method: 'PATCH',
         token,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, rejectionReason }),
+        body: JSON.stringify({
+          decision: pendingDecision.decision,
+          rejectionReason: pendingDecision.decision === 'REJECTED' ? reason : undefined,
+        }),
       });
       await loadAdminData();
-    } catch (err: any) {
-      alert(err.message || 'Error al procesar la verificación del pago.');
+      setPendingDecision(null);
+      setRejectionReason('');
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'No se pudo procesar la decisión.');
     } finally {
       setProcessingPaymentId(null);
     }
   };
 
-  const handleDownloadCsv = () => {
+  const handleDownloadCsv = async () => {
     if (!token) return;
-    apiDownload(
-      `admin/reports/sales?startDate=${reportStartDate}&endDate=${reportEndDate}&format=csv`,
-      token,
-    )
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ventas-${reportStartDate}-a-${reportEndDate}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      })
-      .catch((error: unknown) =>
-        alert(error instanceof Error ? error.message : 'Error al exportar reporte CSV.'),
+    setIsDownloadingReport(true);
+    setActionError(null);
+    try {
+      const blob = await apiDownload(
+        `admin/reports/sales?startDate=${reportStartDate}&endDate=${reportEndDate}&format=csv`,
+        token,
       );
+      const url = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `ventas-${reportStartDate}-a-${reportEndDate}.csv`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error: unknown) {
+      setActionError(error instanceof Error ? error.message : 'No se pudo descargar el reporte CSV.');
+    } finally {
+      setIsDownloadingReport(false);
+    }
   };
 
   if (authLoading || !user || user.role !== 'ADMIN') {
-    return <div className="text-center py-20 text-[#A09098] text-sm">Cargando panel de administración...</div>;
+    return <PageSkeleton label="Cargando panel de administración" />;
   }
 
   const filteredOrders = filterAdminOrders(orders, selectedFilter, orderCodeQuery);
@@ -188,38 +243,47 @@ export default function AdminDashboardPage() {
           {loadError}
         </div>
       )}
+      {actionError && !pendingDecision && (
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm text-red-200">{actionError}</div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#0D0A0C] p-6 rounded-2xl border border-[rgba(255,45,155,0.2)] shadow-sm">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-sakura">Panel Administradora</span>
           <h1 className="text-2xl sm:text-3xl font-black text-white mt-1">Métricas y Operaciones</h1>
           <p className="text-xs text-[#A09098]">
-            Control de ventas confirmadas, verificación de transferencias y reportes de Sakura Beauty.
+            Control de ventas confirmadas, verificación de transferencias y reportes de Sakura Makeup.
           </p>
         </div>
 
         {/* Exportación CSV */}
         <div className="flex items-center gap-2 bg-[#131014] p-2 rounded-xl border border-[rgba(255,255,255,0.08)] text-xs">
-          <Calendar className="w-4 h-4 text-sakura ml-1" />
+          <Calendar className="w-4 h-4 text-sakura ml-1" aria-hidden="true" />
+          <label htmlFor="report-start-date" className="sr-only">Fecha inicial del reporte</label>
           <input
+            id="report-start-date"
             type="date"
             value={reportStartDate}
             onChange={(e) => setReportStartDate(e.target.value)}
             className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#080608] text-white"
           />
           <span className="text-gray-500">a</span>
+          <label htmlFor="report-end-date" className="sr-only">Fecha final del reporte</label>
           <input
+            id="report-end-date"
             type="date"
             value={reportEndDate}
             onChange={(e) => setReportEndDate(e.target.value)}
             className="border border-[rgba(255,255,255,0.1)] rounded px-2 py-1 text-xs bg-[#080608] text-white"
           />
           <button
-            onClick={handleDownloadCsv}
+            type="button"
+            onClick={() => void handleDownloadCsv()}
+            disabled={isDownloadingReport}
             className="flex items-center space-x-1 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm transition-all"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>CSV</span>
+            <Download className={`w-3.5 h-3.5 ${isDownloadingReport ? 'animate-pulse' : ''}`} aria-hidden="true" />
+            <span>{isDownloadingReport ? 'Descargando…' : 'Descargar CSV'}</span>
           </button>
         </div>
       </div>
@@ -283,7 +347,7 @@ export default function AdminDashboardPage() {
                   setOrderCodeQuery(value);
                   if (value.trim()) setSelectedFilter('ALL');
                 }}
-                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#131014] py-1.5 pl-9 pr-8 text-xs font-semibold uppercase text-white placeholder:normal-case placeholder:text-[#5C4E54] focus:border-sakura focus:outline-none focus:ring-1 focus:ring-sakura"
+                className="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[#131014] py-1.5 pl-9 pr-8 text-xs font-semibold uppercase text-white placeholder:normal-case placeholder:text-[#A09098] focus:border-sakura focus:outline-none focus:ring-1 focus:ring-sakura"
               />
               {orderCodeQuery && (
                 <button
@@ -304,7 +368,7 @@ export default function AdminDashboardPage() {
                 onClick={() => setSelectedFilter(filter)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   selectedFilter === filter
-                    ? 'bg-sakura text-white shadow-[0_0_15px_rgba(255,45,155,0.3)]'
+                    ? 'bg-sakura-700 text-white shadow-[0_0_15px_rgba(255,45,155,0.3)]'
                     : 'bg-[#131014] text-[#A09098] hover:text-white border border-[rgba(255,255,255,0.05)]'
                 }`}
               >
@@ -337,7 +401,7 @@ export default function AdminDashboardPage() {
                 </tr>
               ) : filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-[#5C4E54]">
+                  <td colSpan={6} className="text-center py-8 text-[#A09098]">
                     {orderCodeQuery
                       ? `No se encontró una venta con el código ${orderCodeQuery}.`
                       : 'No hay pedidos con el filtro seleccionado.'}
@@ -401,7 +465,11 @@ export default function AdminDashboardPage() {
                         {ord.status === 'PENDING' && ord.seller && (
                           <>
                             <button
-                              onClick={() => handleVerifyPayment(ord.id, 'VERIFIED')}
+                              onClick={(event) => {
+                                decisionTriggerRef.current = event.currentTarget;
+                                setActionError(null);
+                                setPendingDecision({ orderId: ord.id, orderCode: ord.publicCode, decision: 'VERIFIED' });
+                              }}
                               disabled={isProcessing || !verification.canVerify}
                               title={verification.reason ?? 'Confirmar venta'}
                               className="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[11px] font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)] transition-all disabled:cursor-not-allowed disabled:bg-gray-800 disabled:text-gray-500 disabled:shadow-none"
@@ -412,7 +480,11 @@ export default function AdminDashboardPage() {
 
                             {isTransfer && (
                               <button
-                                onClick={() => handleVerifyPayment(ord.id, 'REJECTED')}
+                                onClick={(event) => {
+                                  decisionTriggerRef.current = event.currentTarget;
+                                  setActionError(null);
+                                  setPendingDecision({ orderId: ord.id, orderCode: ord.publicCode, decision: 'REJECTED' });
+                                }}
                                 disabled={isProcessing}
                                 className="inline-flex items-center space-x-1 px-2.5 py-1 bg-red-950/60 hover:bg-red-900/60 text-red-300 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all"
                               >
@@ -437,20 +509,53 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
+      {pendingDecision && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div ref={paymentDialogRef} onKeyDown={trapPaymentDialogFocus} role="dialog" aria-modal="true" aria-labelledby="payment-decision-title" aria-describedby="payment-decision-description" className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0D0A0C] p-6 shadow-2xl">
+            <header className="border-b border-white/10 pb-4">
+              <h2 id="payment-decision-title" className="text-xl font-bold text-white">
+                {pendingDecision.decision === 'VERIFIED' ? 'Confirmar venta' : 'Rechazar pago'}
+              </h2>
+            </header>
+            <div className="py-5">
+              <p id="payment-decision-description" className="text-sm leading-6 text-[#C2B6BC]">
+                Pedido <span className="font-mono font-bold text-white">{pendingDecision.orderCode}</span>. Esta decisión actualiza el estado financiero y quedará registrada.
+              </p>
+              {pendingDecision.decision === 'REJECTED' && (
+                <div className="mt-4">
+                  <label htmlFor="rejection-reason" className="block text-sm font-bold text-white">Motivo del rechazo</label>
+                  <textarea id="rejection-reason" value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} aria-describedby="rejection-reason-help" rows={3} className="mt-2 w-full rounded-xl border border-white/10 bg-[#131014] px-3 py-2 text-sm text-white focus:border-sakura focus:outline-none focus:ring-2 focus:ring-sakura/30" />
+                  <p id="rejection-reason-help" className="mt-1 text-xs text-[#A09098]">Explica qué debe corregirse antes de volver a enviar el comprobante.</p>
+                </div>
+              )}
+              {actionError && <p role="alert" className="mt-4 text-sm text-red-300">{actionError}</p>}
+            </div>
+            <footer className="flex justify-end gap-3 border-t border-white/10 pt-4">
+              <button type="button" autoFocus disabled={processingPaymentId === pendingDecision.orderId} onClick={() => { setPendingDecision(null); setRejectionReason(''); setActionError(null); }} className="rounded-xl px-4 py-2 text-sm font-bold text-[#C2B6BC] hover:bg-white/5 disabled:cursor-wait disabled:opacity-50">Cancelar</button>
+              <button type="button" onClick={() => void handleVerifyPayment()} disabled={processingPaymentId === pendingDecision.orderId} className={`rounded-xl px-4 py-2 text-sm font-bold text-white disabled:cursor-wait disabled:opacity-60 ${pendingDecision.decision === 'VERIFIED' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-700 hover:bg-red-600'}`}>
+                {processingPaymentId === pendingDecision.orderId ? 'Procesando…' : pendingDecision.decision === 'VERIFIED' ? 'Confirmar' : 'Rechazar'}
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Previsualización de Comprobante Privado */}
       {signedUrlData && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0D0A0C] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-[0_0_50px_rgba(255,45,155,0.25)] border border-[rgba(255,45,155,0.3)]">
+          <div role="dialog" aria-modal="true" aria-labelledby="proof-dialog-title" className="bg-[#0D0A0C] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-[0_0_50px_rgba(255,45,155,0.25)] border border-[rgba(255,45,155,0.3)]">
             <div className="flex justify-between items-center border-b border-[rgba(255,255,255,0.08)] pb-3">
               <div>
-                <h3 className="font-bold text-white">Comprobante de Transferencia</h3>
+                <h3 id="proof-dialog-title" className="font-bold text-white">Revisar comprobante</h3>
                 <span className="text-xs text-sakura font-mono">Pedido: {signedUrlData.orderCode}</span>
               </div>
               <button
+                type="button"
                 onClick={() => setSignedUrlData(null)}
+                aria-label="Cerrar comprobante"
                 className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white"
               >
-                ✕
+                <X className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
 
@@ -469,8 +574,9 @@ export default function AdminDashboardPage() {
             <div className="flex justify-between items-center text-xs text-[#96878F]">
               <span>* URL firmada privada (expira en 5 minutos).</span>
               <button
+                type="button"
                 onClick={() => setSignedUrlData(null)}
-                className="px-4 py-2 bg-sakura hover:bg-sakura-glow text-white font-bold rounded-xl text-xs transition-colors shadow-[0_0_15px_rgba(255,45,155,0.3)]"
+                className="px-4 py-2 bg-sakura-700 hover:bg-sakura-600 text-white font-bold rounded-xl text-xs transition-colors shadow-[0_0_15px_rgba(255,45,155,0.3)]"
               >
                 Cerrar
               </button>

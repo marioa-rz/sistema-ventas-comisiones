@@ -3,7 +3,7 @@
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Check, Copy, ArrowRight, Sparkles, MessageCircle } from 'lucide-react';
+import { Check, Copy, ArrowRight, MessageCircle } from 'lucide-react';
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
@@ -35,19 +35,15 @@ function ConfirmationContent() {
     );
   }
 
-  const shareText = `¡Hola! Acabo de hacer un pedido en Sakura Beauty. Mi código de pedido es: *${publicCode}*.`;
+  const shareText = `¡Hola! Acabo de hacer un pedido en Sakura Makeup. Mi código de pedido es: *${publicCode}*.`;
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
   return (
     <div className="max-w-xl mx-auto py-8 px-4 text-center space-y-6">
-      <div className="w-16 h-16 bg-[rgba(255,45,155,0.15)] text-sakura border border-[rgba(255,45,155,0.4)] rounded-full flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(255,45,155,0.3)]">
-        <Sparkles className="w-8 h-8" />
-      </div>
-
       <div className="space-y-2">
         <h1 className="text-3xl font-black text-white">¡Pedido Generado con Éxito!</h1>
         <p className="text-sm text-[#A09098]">
-          Gracias por tu compra en <span className="font-bold text-sakura">Sakura Beauty</span>. Comparte este
+          Gracias por tu compra en <span className="font-bold text-sakura">Sakura Makeup</span>. Comparte este
           código único con tu vendedora para que lo reclame y prepare tu entrega.
         </p>
       </div>

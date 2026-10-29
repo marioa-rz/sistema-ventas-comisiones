@@ -16,4 +16,22 @@ describe('checkout boundary', () => {
     expect(confirmationSource).not.toContain("searchParams.get('name')");
     expect(confirmationSource).not.toContain("searchParams.get('total')");
   });
+
+  it('associates persistent help and errors with checkout fields', () => {
+    expect(cartSource).toContain('htmlFor="customer-name"');
+    expect(cartSource).toContain('id="customer-name"');
+    expect(cartSource).toContain('aria-describedby="customer-name-help"');
+    expect(cartSource).toContain('role="alert"');
+  });
+
+  it('uses an H1 for the empty cart state', () => {
+    expect(cartSource).toContain('<h1 className="text-2xl font-bold text-white">Tu carrito está vacío</h1>');
+  });
+
+  it('exposes the selected payment method to assistive technology', () => {
+    expect(cartSource).toContain('<fieldset>');
+    expect(cartSource).toContain('<legend');
+    expect(cartSource).toContain("aria-pressed={paymentMethod === 'CASH'}");
+    expect(cartSource).toContain("aria-pressed={paymentMethod === 'TRANSFER'}");
+  });
 });
