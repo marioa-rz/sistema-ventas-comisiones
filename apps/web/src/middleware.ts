@@ -7,6 +7,11 @@ import {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const frameSources = ["'self'"];
+const scriptSources = ["'self'", "'unsafe-inline'"];
+
+if (process.env.NODE_ENV === 'development') {
+  scriptSources.push("'unsafe-eval'");
+}
 if (supabaseUrl) {
   try {
     const parsed = new URL(supabaseUrl);
@@ -23,7 +28,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "object-src 'none'",
   `frame-src ${frameSources.join(' ')}`,
-  "script-src 'self' 'unsafe-inline'",
+  `script-src ${scriptSources.join(' ')}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { NextRequest } from 'next/server';
+import { readFileSync } from 'node:fs';
 import { middleware, routeRequest } from './middleware';
+
+const middlewareSource = readFileSync(new URL('./middleware.ts', import.meta.url), 'utf8');
 
 function createRequest(path: string, cookies: Record<string, string> = {}): NextRequest {
   const request = new NextRequest(new URL(path, 'https://sakuramakeup.gt'));
@@ -54,5 +57,11 @@ describe('route protection middleware', () => {
     expect(response.headers.get('x-frame-options')).toBe('DENY');
     expect(response.headers.get('x-content-type-options')).toBe('nosniff');
     expect(response.headers.get('content-security-policy')).toContain("default-src 'self'");
+    expect(response.headers.get('content-security-policy')).not.toContain("'unsafe-eval'");
+  });
+
+  it('supports React Refresh only when Next.js runs in development', () => {
+    expect(middlewareSource).toContain("process.env.NODE_ENV === 'development'");
+    expect(middlewareSource).toContain("scriptSources.push(\"'unsafe-eval'\")");
   });
 });

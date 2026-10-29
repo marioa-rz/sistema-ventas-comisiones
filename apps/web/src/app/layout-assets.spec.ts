@@ -29,6 +29,12 @@ describe('Next.js build asset isolation', () => {
     expect(nextConfig).not.toContain("hostname: '**'");
   });
 
+  it('allows React Refresh evaluation only in development', () => {
+    expect(nextConfig).toContain("process.env.NODE_ENV === 'development'");
+    expect(nextConfig).toContain("scriptSources.push(\"'unsafe-eval'\")");
+    expect(nextConfig).toContain('`script-src ${scriptSources.join');
+  });
+
   it('publishes canonical and social metadata for Sakura Makeup', () => {
     expect(rootLayout).toContain("title: 'Sakura Makeup");
     expect(rootLayout).toContain('metadataBase: siteUrl');
