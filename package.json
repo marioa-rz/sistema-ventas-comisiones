@@ -2,7 +2,7 @@
   "name": "sistema-ventas-comisiones",
   "version": "0.1.0",
   "private": true,
-  "description": "MVP de ventas por comisión para Sakura Nails",
+  "description": "Sistema de ventas por comisión para Sakura Makeup",
   "engines": {
     "node": ">=24.11.0 <25"
   },
@@ -10,6 +10,9 @@
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "body-parser": "2.4.0"
+  },
   "scripts": {
     "build": "npm run build -w @sakura/api && npm run build -w @sakura/web",
     "build:api": "npm run build -w @sakura/api",

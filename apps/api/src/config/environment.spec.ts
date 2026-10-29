@@ -30,8 +30,45 @@ describe('loadEnvironment', () => {
     expect(() => loadEnvironment({ ...validEnvironment, NODE_ENV: 'production' })).toThrow(
       'TRUST_PROXY_HOPS must be configured in production',
     );
-    expect(loadEnvironment({ ...validEnvironment, NODE_ENV: 'production', TRUST_PROXY_HOPS: '1' })).toMatchObject({
-      trustProxyHops: 1,
-    });
+    expect(loadEnvironment({
+      ...validEnvironment,
+      NODE_ENV: 'production',
+      TRUST_PROXY_HOPS: '1',
+      CORS_ORIGIN: 'https://sakura.example',
+    })).toMatchObject({ trustProxyHops: 1 });
+  });
+
+  it('requires an explicit HTTPS CORS allowlist in production', () => {
+    expect(() =>
+      loadEnvironment({
+        ...validEnvironment,
+        NODE_ENV: 'production',
+        TRUST_PROXY_HOPS: '1',
+      }),
+    ).toThrow('CORS_ORIGIN must be configured in production');
+
+    expect(
+      loadEnvironment({
+        ...validEnvironment,
+        NODE_ENV: 'production',
+        TRUST_PROXY_HOPS: '1',
+        CORS_ORIGIN: 'https://sakura.example',
+      }).corsOrigins,
+    ).toEqual(['https://sakura.example']);
+  });
+
+  it('rejects wildcard and non-HTTPS production CORS origins', () => {
+    const productionEnvironment = {
+      ...validEnvironment,
+      NODE_ENV: 'production',
+      TRUST_PROXY_HOPS: '1',
+    };
+
+    expect(() => loadEnvironment({ ...productionEnvironment, CORS_ORIGIN: '*' })).toThrow(
+      'CORS_ORIGIN must contain explicit HTTPS origins in production',
+    );
+    expect(() =>
+      loadEnvironment({ ...productionEnvironment, CORS_ORIGIN: 'http://sakura.example' }),
+    ).toThrow('CORS_ORIGIN must contain explicit HTTPS origins in production');
   });
 });
