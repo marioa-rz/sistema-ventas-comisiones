@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { Body, Controller, Module, Post } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -58,7 +59,9 @@ describe('CreateOrderDto', () => {
   });
 
   it('generates its OpenAPI schema when running through tsx', async () => {
-    const app = await NestFactory.create(OrdersSchemaModule, { logger: false });
+    const app = await NestFactory.create(OrdersSchemaModule, new ExpressAdapter(), {
+      logger: false,
+    });
 
     expect(() => SwaggerModule.createDocument(app, new DocumentBuilder().build())).not.toThrow();
 

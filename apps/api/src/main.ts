@@ -1,7 +1,7 @@
 import './config/environment-file';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
+import { ExpressAdapter, type NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { AppModule } from './app.module';
@@ -11,7 +11,11 @@ import { securityHeadersFor } from './config/security-headers';
 
 async function bootstrap(): Promise<void> {
   const environment = loadEnvironment();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule,
+    new ExpressAdapter(),
+    { bufferLogs: true },
+  );
 
   if (environment.trustProxyHops > 0) app.set('trust proxy', environment.trustProxyHops);
 
