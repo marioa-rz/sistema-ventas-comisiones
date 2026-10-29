@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
+import { PageSkeleton } from '../../components/page-skeleton';
 import { apiClient } from '../../lib/api';
 
 interface SellerOrder {
@@ -54,12 +55,14 @@ export default function SellerPortalPage() {
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [commissionsSummary, setCommissionsSummary] = useState<CommissionSummary | null>(null);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [markingCashId, setMarkingCashId] = useState<string | null>(null);
 
   const loadSellerData = useCallback(async () => {
     if (!token) return;
     setLoadingOrders(true);
+    setLoadError(null);
     try {
       const [ordersData, commsData] = await Promise.all([
         apiClient<SellerOrder[]>('seller/orders', { token }),
@@ -67,17 +70,24 @@ export default function SellerPortalPage() {
       ]);
       setOrders(ordersData);
       setCommissionsSummary(commsData.summary);
-    } catch {
-      // Manejado silenciosamente
+    } catch (error: unknown) {
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo cargar la información del portal de vendedora.',
+      );
     } finally {
       setLoadingOrders(false);
     }
   }, [token]);
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'SELLER')) {
-      router.push('/login');
-    } else if (user && token) {
+    if (authLoading) return;
+    if (!user) {
+      router.replace('/portal');
+    } else if (user.role === 'ADMIN') {
+      router.replace('/admin');
+    } else if (token) {
       void loadSellerData();
     }
   }, [user, token, authLoading, router, loadSellerData]);
@@ -124,12 +134,17 @@ export default function SellerPortalPage() {
     }
   };
 
-  if (authLoading || (!user && !claimError)) {
-    return <div className="text-center py-20 text-[#A09098] text-sm">Cargando portal de vendedor...</div>;
+  if (authLoading || !user || user.role !== 'SELLER') {
+    return <PageSkeleton label="Cargando portal de vendedora" />;
   }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-red-500/40 bg-red-950/60 px-4 py-3 text-sm text-red-200">
+          {loadError}
+        </div>
+      )}
       {/* Header del Vendedor */}
       <div className="bg-[#0D0A0C] rounded-2xl p-6 sm:p-8 border border-[rgba(255,45,155,0.2)] shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -138,7 +153,7 @@ export default function SellerPortalPage() {
             Hola, {user?.displayName}
           </h1>
           <p className="text-xs sm:text-sm text-[#A09098]">
-            Reclama pedidos de tus clientes, marca pagos en efectivo y consulta tus comisiones en Sakura Beauty.
+            Reclama pedidos de tus clientes, marca pagos en efectivo y consulta tus comisiones en Sakura Makeup.
           </p>
         </div>
 
@@ -177,38 +192,44 @@ export default function SellerPortalPage() {
         </p>
 
         {claimError && (
-          <div className="bg-red-950/60 text-red-200 border border-red-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
+          <div role="alert" className="bg-red-950/60 text-red-200 border border-red-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-400" />
             <span>{claimError}</span>
           </div>
         )}
 
         {claimSuccess && (
-          <div className="bg-emerald-950/60 text-emerald-200 border border-emerald-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
+          <div role="status" className="bg-emerald-950/60 text-emerald-200 border border-emerald-500/40 px-3.5 py-2 rounded-xl text-xs flex items-center space-x-2">
             <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-400" />
             <span>{claimSuccess}</span>
           </div>
         )}
 
-        <form onSubmit={handleClaimOrder} className="flex flex-col sm:flex-row gap-3 max-w-lg">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+        <form onSubmit={handleClaimOrder} className="flex max-w-lg flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label htmlFor="claim-code" className="mb-1 block text-xs font-bold text-[#C2B6BC]">Código del pedido</label>
+            <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" aria-hidden="true" />
             <input
+              id="claim-code"
               type="text"
               required
+              aria-describedby="claim-code-help"
               placeholder="VNT-XXXXXX"
               value={claimCode}
               onChange={(e) => setClaimCode(e.target.value.toUpperCase())}
               className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#131014] text-white text-sm uppercase font-mono font-bold tracking-wider placeholder:normal-case placeholder:font-normal placeholder-[#5C4E54] focus:outline-none focus:border-sakura focus:ring-1 focus:ring-sakura"
             />
+            </div>
+            <p id="claim-code-help" className="mt-1 text-[11px] text-[#A09098]">Formato: VNT- seguido de seis letras o números.</p>
           </div>
           <button
             type="submit"
             disabled={isClaiming}
-            className="px-6 py-2.5 rounded-xl bg-sakura hover:bg-sakura-glow text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 active:scale-95 disabled:bg-gray-800 disabled:text-gray-500"
+            className="px-6 py-2.5 rounded-xl bg-sakura-700 hover:bg-sakura-600 text-white font-bold text-xs tracking-wider uppercase transition-all shadow-[0_0_15px_rgba(255,45,155,0.3)] flex items-center justify-center space-x-2 active:scale-95 disabled:bg-gray-800 disabled:text-gray-500"
           >
             {isClaiming ? (
-              <span>Reclamando...</span>
+              <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" /><span>Reclamando…</span></>
             ) : (
               <>
                 <ClipboardCheck className="w-4 h-4" />
@@ -224,11 +245,13 @@ export default function SellerPortalPage() {
         <h2 className="text-lg font-bold text-white">Mis Pedidos Asignados ({orders.length})</h2>
 
         {loadingOrders ? (
-          <div className="text-center py-10 text-xs text-[#A09098]">Cargando pedidos...</div>
+          <div aria-label="Cargando pedidos" className="grid animate-pulse grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => <div key={index} className="h-56 rounded-xl border border-white/5 bg-[#131014]" />)}
+          </div>
         ) : orders.length === 0 ? (
           <div className="text-center py-12 border border-dashed border-[rgba(255,255,255,0.1)] rounded-xl space-y-2">
             <p className="text-[#A09098] text-sm">No tienes pedidos asignados actualmente.</p>
-            <p className="text-xs text-[#5C4E54]">Reclama un pedido con el código que te proporcione tu cliente.</p>
+            <p className="text-xs text-[#A09098]">Reclama un pedido con el código que te proporcione tu cliente.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -312,12 +335,30 @@ export default function SellerPortalPage() {
                             className="flex items-center space-x-1 text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg shadow-sm active:scale-95 transition-all"
                           >
                             <Banknote className="w-3.5 h-3.5" />
+                            {markingCashId === ord.id && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" aria-hidden="true" />}
                             <span>
                               {markingCashId === ord.id ? 'Registrando...' : 'Marcar Efectivo'}
                             </span>
                           </button>
                         )}
                       </div>
+                    )}
+
+                    {!isCash && ord.status === 'PENDING' && (
+                      <span
+                        className={`inline-flex max-w-[190px] items-center space-x-1 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                          ord.payment.status === 'REJECTED'
+                            ? 'border-red-500/30 bg-red-950/40 text-red-300'
+                            : 'border-amber-500/30 bg-amber-950/40 text-amber-300'
+                        }`}
+                      >
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span>
+                          {ord.payment.status === 'REJECTED'
+                            ? 'Comprobante rechazado por administración'
+                            : 'Pendiente de revisión administrativa'}
+                        </span>
+                      </span>
                     )}
                   </div>
                 </div>

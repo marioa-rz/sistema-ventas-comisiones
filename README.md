@@ -1,6 +1,6 @@
 # Sistema de ventas por comisiones
 
-Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, comisiones y reportes de Sakura Nails.
+Base profesional del MVP para catálogo, pedidos públicos, vendedores, pagos, comisiones y reportes de Sakura Makeup.
 
 ## Estado actual
 

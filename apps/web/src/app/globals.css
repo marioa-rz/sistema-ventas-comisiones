@@ -15,6 +15,14 @@
   --text-primary: #F8F0F5;
   --text-secondary: #C2B6BC;
   --text-muted: #96878F;
+  --catalog-canvas: #fff9fb;
+  --catalog-surface: #ffffff;
+  --catalog-blush: #f8e8ef;
+  --catalog-border: #ead7e0;
+  --catalog-ink: #2d1722;
+  --catalog-muted: #765e6a;
+  --catalog-accent: #c2186a;
+  --catalog-accent-strong: #9e0f55;
 }
 
 body {
@@ -22,6 +30,100 @@ body {
   background: var(--dark);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Preservar estética oscura y legible en inputs autocompletados por el navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #F8F0F5 !important;
+  -webkit-box-shadow: 0 0 0 1000px #131014 inset !important;
+  box-shadow: 0 0 0 1000px #131014 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #F8F0F5 !important;
+}
+
+.catalog-hero {
+  background:
+    radial-gradient(circle at 82% 16%, rgba(255, 255, 255, 0.92), transparent 25%),
+    linear-gradient(125deg, #fff7fa 0%, #f7dfe9 52%, #efcbd9 100%);
+}
+
+.catalog-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.catalog-orb-one {
+  width: 22rem;
+  height: 22rem;
+  right: -6rem;
+  top: -8rem;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.catalog-orb-two {
+  width: 13rem;
+  height: 13rem;
+  left: 42%;
+  bottom: -7rem;
+  background: rgba(255, 45, 155, 0.1);
+}
+
+.catalog-product-placeholder {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.95), transparent 30%),
+    linear-gradient(145deg, #fff9fb, #f3d7e3);
+}
+
+.legal-copy {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.legal-copy h1 {
+  margin-bottom: 1.5rem;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.legal-copy h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.legal-copy p + p,
+.legal-copy ul + p {
+  margin-top: 1rem;
+}
+
+.legal-copy ul {
+  margin-block: 1rem;
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+
+.legal-copy a {
+  color: #ff61bc;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Custom scrollbar estilizado con acento Sakura */

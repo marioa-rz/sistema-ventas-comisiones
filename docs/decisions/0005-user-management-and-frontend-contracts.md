@@ -2,7 +2,7 @@
 
 ## Contexto
 
-El sistema utiliza Supabase Auth para la autenticación de identidad (gestión de contraseñas, tokens JWT, recuperación de acceso), pero las reglas de negocio, roles (`ADMIN`, `SELLER`), estados (`isActive`) e historiales comerciales pertenecen exclusivamente al modelo de dominio de Sakura Nails en la base de datos PostgreSQL (`app_users`).
+El sistema utiliza Supabase Auth para la autenticación de identidad (gestión de contraseñas, tokens JWT, recuperación de acceso), pero las reglas de negocio, roles (`ADMIN`, `SELLER`), estados (`isActive`) e historiales comerciales pertenecen exclusivamente al modelo de dominio de Sakura Makeup en la base de datos PostgreSQL (`app_users`).
 
 Para la administración de usuarios y la futura integración de Next.js, se requería una estrategia clara para:
 1. Vincular identidades de Supabase Auth con perfiles de dominio sin exponer credenciales administrativas en el cliente.

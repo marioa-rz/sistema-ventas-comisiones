@@ -6,7 +6,7 @@ export interface Environment {
   supabaseJwtIssuer: string;
   supabaseJwtAudience: string;
   supabaseJwksUrl: string;
-  corsOrigin?: string;
+  corsOrigins: string[];
 }
 
 export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Environment {
@@ -49,6 +49,26 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
   }
 
   const corsOrigin = source.CORS_ORIGIN?.trim();
+  if (nodeEnv === 'production' && !corsOrigin) {
+    throw new Error('CORS_ORIGIN must be configured in production');
+  }
+  const corsOrigins = corsOrigin
+    ? corsOrigin.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : ['http://localhost:3001'];
+
+  if (
+    nodeEnv === 'production' &&
+    corsOrigins.some((origin) => {
+      if (origin === '*') return true;
+      try {
+        return new URL(origin).protocol !== 'https:';
+      } catch {
+        return true;
+      }
+    })
+  ) {
+    throw new Error('CORS_ORIGIN must contain explicit HTTPS origins in production');
+  }
 
   return {
     databaseUrl,
@@ -58,7 +78,7 @@ export function loadEnvironment(source: NodeJS.ProcessEnv = process.env): Enviro
     supabaseJwtIssuer,
     supabaseJwtAudience,
     supabaseJwksUrl,
-    corsOrigin,
+    corsOrigins,
   };
 }
 

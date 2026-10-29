@@ -3,18 +3,17 @@
 import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Check, Copy, ArrowRight, Sparkles, MessageCircle } from 'lucide-react';
+import { Check, Copy, ArrowRight, MessageCircle } from 'lucide-react';
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
-  const publicCode = searchParams.get('code') || 'VNT-PENDIENTE';
-  const total = searchParams.get('total') || '0.00';
-  const paymentMethod = searchParams.get('method') || 'CASH';
-  const customerName = searchParams.get('name') || 'Cliente';
+  const code = searchParams.get('code')?.trim().toUpperCase() ?? '';
+  const publicCode = /^VNT-[A-Z0-9]{6}$/.test(code) ? code : null;
 
   const [copied, setCopied] = useState(false);
 
   const handleCopyCode = async () => {
+    if (!publicCode) return;
     try {
       await navigator.clipboard.writeText(publicCode);
       setCopied(true);
@@ -24,20 +23,28 @@ function ConfirmationContent() {
     }
   };
 
-  const shareText = `¡Hola! Acabo de hacer un pedido en Sakura Beauty. Mi código de pedido es: *${publicCode}* por un total de Q${total}.`;
+  if (!publicCode) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-4">
+        <h1 className="text-2xl font-black text-white">No encontramos un código de pedido válido</h1>
+        <p className="text-sm text-[#A09098]">Regresa al catálogo y completa el pedido nuevamente.</p>
+        <Link href="/" className="inline-flex text-sm font-semibold text-sakura hover:text-sakura-glow">
+          Volver al catálogo
+        </Link>
+      </div>
+    );
+  }
+
+  const shareText = `¡Hola! Acabo de hacer un pedido en Sakura Makeup. Mi código de pedido es: *${publicCode}*.`;
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
   return (
     <div className="max-w-xl mx-auto py-8 px-4 text-center space-y-6">
-      <div className="w-16 h-16 bg-[rgba(255,45,155,0.15)] text-sakura border border-[rgba(255,45,155,0.4)] rounded-full flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(255,45,155,0.3)]">
-        <Sparkles className="w-8 h-8" />
-      </div>
-
       <div className="space-y-2">
         <h1 className="text-3xl font-black text-white">¡Pedido Generado con Éxito!</h1>
         <p className="text-sm text-[#A09098]">
-          Gracias por tu compra en <span className="font-bold text-sakura">Sakura Beauty</span>,{' '}
-          <span className="font-semibold text-white">{customerName}</span>. Comparte este código único con tu vendedora para que lo reclame y prepare tu entrega.
+          Gracias por tu compra en <span className="font-bold text-sakura">Sakura Makeup</span>. Comparte este
+          código único con tu vendedora para que lo reclame y prepare tu entrega.
         </p>
       </div>
 
@@ -49,12 +56,6 @@ function ConfirmationContent() {
         <div className="text-4xl font-mono font-black tracking-widest text-white select-all drop-shadow-[0_0_10px_rgba(255,45,155,0.5)]">
           {publicCode}
         </div>
-        <div className="text-xs text-[#96878F] font-medium">
-          Monto Total:{' '}
-          <span className="text-white font-bold text-sm">Q{parseFloat(total).toFixed(2)}</span>{' '}
-          ({paymentMethod === 'TRANSFER' ? 'Transferencia' : 'Efectivo'})
-        </div>
-
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <button
             onClick={handleCopyCode}
@@ -91,11 +92,7 @@ function ConfirmationContent() {
         <ol className="list-decimal pl-4 space-y-1.5 text-[#A09098]">
           <li>Copia tu código o compártelo a tu vendedora por mensaje.</li>
           <li>Tu vendedora ingresará el código en su sistema para asignarse tu pedido.</li>
-          <li>
-            {paymentMethod === 'CASH'
-              ? 'Pagarás en efectivo al momento de recibir tus productos.'
-              : 'La administración revisará tu comprobante y confirmará el pago.'}
-          </li>
+          <li>La administración confirmará la venta cuando valide el pago correspondiente.</li>
         </ol>
       </div>
 

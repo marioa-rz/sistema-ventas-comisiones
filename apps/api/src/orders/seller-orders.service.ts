@@ -49,8 +49,12 @@ export class SellerOrdersService {
       if (assignment.count === 0) {
         const existing = await transaction.order.findUnique({ where: { publicCode }, select: sellerOrderSelect });
         if (!existing) throw new NotFoundException('Order not found');
-        if (existing.sellerId === sellerId && existing.status === 'PENDING') return existing;
-        if (existing.sellerId) throw new ConflictException('Order is already assigned');
+        if (existing.sellerId === sellerId) {
+          throw new ConflictException('Este pedido ya está asignado a tu cuenta.');
+        }
+        if (existing.sellerId) {
+          throw new ConflictException('Este pedido ya fue reclamado por otra vendedora.');
+        }
         throw new ConflictException('Order cannot be claimed in its current state');
       }
 

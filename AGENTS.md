@@ -34,6 +34,7 @@ Monolito modular para catálogo público, pedidos, asignación a vendedores, ver
 
 Carga solo las skills necesarias:
 
+- `efficient-delivery`: cambios de código de varias piezas, trabajo con riesgo o solicitudes de reducir complejidad/coste; selecciona la ruta mínima completa y la escalera de verificación.
 - `architecture`: límites de módulos, ADRs y evolución futura.
 - `database`: Prisma, SQL, migraciones, integridad y rendimiento.
 - `nestjs-backend`: módulos, controladores, servicios, DTOs y errores.
@@ -46,6 +47,18 @@ Carga solo las skills necesarias:
 - `frontend-integration`: contrato API y futura aplicación Next.js.
 
 Precedencia: solicitud humana > este archivo > skill aplicable > documentación general. Las instrucciones más cercanas al archivo modificado ganan si no contradicen niveles superiores.
+
+## Modelo operativo
+
+1. Inspeccionar antes de editar: reglas cercanas, estado Git, código afectado, consumidores y pruebas vecinas.
+2. Trabajar en línea por defecto. Usar agentes paralelos solo cuando se soliciten o exista una razón explícita y las superficies de escritura sean independientes; no separar pruebas, código y documentación de un mismo comportamiento.
+3. Elegir el cambio completo más pequeño: reutilizar patrones locales, después plataforma/estándar y por último dependencias nuevas. No añadir abstracciones, configuración o flexibilidad especulativa.
+4. Aplicar TDD a comportamiento y reglas. Durante la iteración ejecutar primero la prueba enfocada; antes de cerrar, ampliar la verificación según el riesgo y ejecutar `npm run verify` cuando el cambio pueda afectar el conjunto.
+5. Consultar documentación oficial cuando una decisión dependa de APIs, versiones o comportamiento externo susceptible de cambio. Registrar ADR solo si la decisión es costosa de revertir.
+6. Escalar herramientas por necesidad: `rg` y lectura dirigida antes de indexadores; Postman CLI para contratos/colecciones API cuando aporte evidencia; grafos, proxies de inferencia y servicios auxiliares solo tras justificar su coste operativo.
+7. Entregar evidencia, no actividad: cambios concretos, comandos realmente ejecutados, resultados, riesgos residuales y pendientes. No crear commits, ramas, PR ni despliegues sin solicitud.
+
+La evaluación de herramientas externas y el criterio de adopción están en `docs/agent-workflow-audit.md`.
 
 ## Validación habitual
 

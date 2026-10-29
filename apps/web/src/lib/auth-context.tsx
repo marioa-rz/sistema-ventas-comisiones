@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { apiClient } from './api';
+import { SessionRequestGuard } from './session-request-guard';
 import { supabase } from './supabase';
 
 export interface CommercialUser {
@@ -15,7 +16,7 @@ interface AuthContextType {
   user: CommercialUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<CommercialUser>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -26,44 +27,72 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CommercialUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const requestGuard = useRef(new SessionRequestGuard());
 
-  const fetchProfile = async (accessToken: string) => {
-    try {
-      const profile = await apiClient<CommercialUser>('auth/me', { token: accessToken });
+  const clearSession = () => {
+    requestGuard.current.clear();
+    setUser(null);
+    setToken(null);
+  };
+
+  const fetchProfile = async (accessToken: string): Promise<CommercialUser> => {
+    const profile = await apiClient<CommercialUser>('auth/me', { token: accessToken });
+    if (requestGuard.current.isCurrent(accessToken)) {
       setUser(profile);
       setToken(accessToken);
-    } catch {
-      setUser(null);
-      setToken(null);
-      await supabase.auth.signOut();
     }
+    return profile;
   };
 
   useEffect(() => {
     const initAuth = async () => {
+      let requestedToken: string | null = null;
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.access_token) {
+          requestedToken = session.access_token;
+          requestGuard.current.activate(session.access_token);
           await fetchProfile(session.access_token);
         }
       } catch {
-        setUser(null);
-        setToken(null);
+        const requestIsCurrent = requestedToken
+          ? requestGuard.current.isCurrent(requestedToken)
+          : !requestGuard.current.hasActiveSession();
+        if (requestIsCurrent) {
+          clearSession();
+          await supabase.auth.signOut();
+        }
       } finally {
-        setLoading(false);
+        if (
+          (requestedToken && requestGuard.current.isCurrent(requestedToken)) ||
+          (!requestedToken && !requestGuard.current.hasActiveSession())
+        ) {
+          setLoading(false);
+        }
       }
     };
 
     void initAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.access_token) {
-        await fetchProfile(session.access_token);
+        requestGuard.current.activate(session.access_token);
+        setLoading(true);
+        void fetchProfile(session.access_token)
+          .catch(async () => {
+            if (requestGuard.current.isCurrent(session.access_token)) {
+              clearSession();
+              await supabase.auth.signOut();
+              setLoading(false);
+            }
+          })
+          .finally(() => {
+            if (requestGuard.current.isCurrent(session.access_token)) setLoading(false);
+          });
       } else {
-        setUser(null);
-        setToken(null);
+        clearSession();
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -71,14 +100,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<CommercialUser> => {
     setLoading(true);
+    let attemptedToken: string | null = null;
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      if (data.session?.access_token) {
-        await fetchProfile(data.session.access_token);
+      if (!data.session?.access_token) throw new Error('Supabase no devolvió una sesión válida.');
+      attemptedToken = data.session.access_token;
+      requestGuard.current.activate(attemptedToken);
+      const profile = await fetchProfile(attemptedToken);
+      return profile;
+    } catch (error) {
+      const attemptIsCurrent = attemptedToken
+        ? requestGuard.current.isCurrent(attemptedToken)
+        : !requestGuard.current.hasActiveSession();
+      if (attemptIsCurrent) {
+        clearSession();
+        await supabase.auth.signOut();
       }
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -86,11 +127,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     setLoading(true);
+    requestGuard.current.clear();
     try {
       await supabase.auth.signOut();
-      setUser(null);
-      setToken(null);
     } finally {
+      clearSession();
       setLoading(false);
     }
   };

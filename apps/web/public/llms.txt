@@ -1,0 +1,11 @@
+# Sakura Makeup
+
+Sakura Makeup es el nombre comercial de Sakura Studio, ubicado en Villa Hermosa, San Miguel Petapa, Guatemala.
+
+Rutas públicas:
+- / — catálogo y creación de pedidos.
+- /aviso-legal — identificación y condiciones de uso.
+- /privacidad — tratamiento de datos del pedido.
+- /cookies — almacenamiento local y estrategia de consentimiento.
+
+Las rutas /admin, /seller, /login, /cart y /order-confirmation no deben indexarse. El contenido de precios y disponibilidad debe verificarse en el catálogo actual; la API confirma los totales del pedido.
