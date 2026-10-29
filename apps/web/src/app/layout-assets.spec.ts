@@ -35,6 +35,11 @@ describe('Next.js build asset isolation', () => {
     expect(nextConfig).toContain('`script-src ${scriptSources.join');
   });
 
+  it('allows the local API origin only in development', () => {
+    expect(nextConfig).toContain("connectSources.push('http://localhost:3000')");
+    expect(nextConfig).toContain('`connect-src ${connectSources.join');
+  });
+
   it('publishes canonical and social metadata for Sakura Makeup', () => {
     expect(rootLayout).toContain("title: 'Sakura Makeup");
     expect(rootLayout).toContain('metadataBase: siteUrl');

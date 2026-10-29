@@ -58,10 +58,15 @@ describe('route protection middleware', () => {
     expect(response.headers.get('x-content-type-options')).toBe('nosniff');
     expect(response.headers.get('content-security-policy')).toContain("default-src 'self'");
     expect(response.headers.get('content-security-policy')).not.toContain("'unsafe-eval'");
+    expect(response.headers.get('content-security-policy')).not.toContain('http://localhost:3000');
   });
 
   it('supports React Refresh only when Next.js runs in development', () => {
     expect(middlewareSource).toContain("process.env.NODE_ENV === 'development'");
     expect(middlewareSource).toContain("scriptSources.push(\"'unsafe-eval'\")");
+  });
+
+  it('allows the local API origin only when Next.js runs in development', () => {
+    expect(middlewareSource).toContain("connectSources.push('http://localhost:3000')");
   });
 });

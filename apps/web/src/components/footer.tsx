@@ -12,7 +12,7 @@ export function Footer() {
           <p className="text-[11px] text-[#A09098]">Sakura Studio · Villa Hermosa, San Miguel Petapa, Guatemala.</p>
           <a href="tel:+50242727527" className="mt-1 inline-block hover:text-sakura">4272-7527</a>
         </div>
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-start">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-2">
           <Link href="/aviso-legal" className="hover:text-sakura transition-colors">Aviso legal</Link>
           <Link href="/privacidad" className="hover:text-sakura transition-colors">Privacidad</Link>
           <Link href="/cookies" className="hover:text-sakura transition-colors">Cookies</Link>

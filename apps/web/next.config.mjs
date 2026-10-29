@@ -2,9 +2,11 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const remotePatterns = [];
 const frameSources = ["'self'"];
 const scriptSources = ["'self'", "'unsafe-inline'"];
+const connectSources = ["'self'", 'https:'];
 
 if (process.env.NODE_ENV === 'development') {
   scriptSources.push("'unsafe-eval'");
+  connectSources.push('http://localhost:3000');
 }
 
 if (supabaseUrl) {
@@ -30,7 +32,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https:",
+  `connect-src ${connectSources.join(' ')}`,
   "upgrade-insecure-requests",
 ].join('; ');
 
