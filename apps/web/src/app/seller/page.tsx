@@ -82,9 +82,12 @@ export default function SellerPortalPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'SELLER')) {
-      router.replace('/login');
-    } else if (user && token) {
+    if (authLoading) return;
+    if (!user) {
+      router.replace('/portal');
+    } else if (user.role === 'ADMIN') {
+      router.replace('/admin');
+    } else if (token) {
       void loadSellerData();
     }
   }, [user, token, authLoading, router, loadSellerData]);

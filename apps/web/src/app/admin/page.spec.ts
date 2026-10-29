@@ -4,6 +4,16 @@ import { describe, expect, it } from 'vitest';
 const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 
 describe('AdminDashboardPage API contract', () => {
+  it('returns unauthenticated visitors directly to the canonical portal', () => {
+    expect(source).toContain("router.replace('/portal')");
+    expect(source).not.toContain("router.replace('/login')");
+  });
+
+  it('sends an authenticated seller to their own portal', () => {
+    expect(source).toContain("user.role === 'SELLER'");
+    expect(source).toContain("router.replace('/seller')");
+  });
+
   it('reads the nested sales contract returned by GET /admin/dashboard', () => {
     expect(source).toContain('dashboard.sales.today.totalAmount');
     expect(source).toContain('dashboard.sales.week.totalAmount');

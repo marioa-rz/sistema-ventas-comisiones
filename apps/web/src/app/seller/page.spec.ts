@@ -4,6 +4,16 @@ import { describe, expect, it } from 'vitest';
 const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 
 describe('SellerPortalPage failure states', () => {
+  it('returns unauthenticated visitors directly to the canonical portal', () => {
+    expect(source).toContain("router.replace('/portal')");
+    expect(source).not.toContain("router.replace('/login')");
+  });
+
+  it('sends an authenticated administrator to their own panel', () => {
+    expect(source).toContain("user.role === 'ADMIN'");
+    expect(source).toContain("router.replace('/admin')");
+  });
+
   it('shows data-loading failures instead of silently rendering empty data', () => {
     expect(source).toContain('setLoadError(');
     expect(source).toContain('{loadError && (');

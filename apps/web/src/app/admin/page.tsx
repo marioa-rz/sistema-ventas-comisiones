@@ -118,9 +118,12 @@ export default function AdminDashboardPage() {
   }, [token]);
 
   useEffect(() => {
-    if (!authLoading && (!user || user.role !== 'ADMIN')) {
-      router.replace('/login');
-    } else if (user && token) {
+    if (authLoading) return;
+    if (!user) {
+      router.replace('/portal');
+    } else if (user.role === 'SELLER') {
+      router.replace('/seller');
+    } else if (token) {
       void loadAdminData();
     }
   }, [user, token, authLoading, router, loadAdminData]);

@@ -16,7 +16,7 @@ interface AuthContextType {
   user: CommercialUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<CommercialUser>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -35,12 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
   };
 
-  const fetchProfile = async (accessToken: string) => {
+  const fetchProfile = async (accessToken: string): Promise<CommercialUser> => {
     const profile = await apiClient<CommercialUser>('auth/me', { token: accessToken });
     if (requestGuard.current.isCurrent(accessToken)) {
       setUser(profile);
       setToken(accessToken);
     }
+    return profile;
   };
 
   useEffect(() => {
@@ -99,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<CommercialUser> => {
     setLoading(true);
     let attemptedToken: string | null = null;
     try {
@@ -108,7 +109,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!data.session?.access_token) throw new Error('Supabase no devolvió una sesión válida.');
       attemptedToken = data.session.access_token;
       requestGuard.current.activate(attemptedToken);
-      await fetchProfile(attemptedToken);
+      const profile = await fetchProfile(attemptedToken);
+      return profile;
     } catch (error) {
       const attemptIsCurrent = attemptedToken
         ? requestGuard.current.isCurrent(attemptedToken)

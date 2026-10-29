@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const source = readFileSync(new URL('./auth-context.tsx', import.meta.url), 'utf8');
+const supabaseSource = readFileSync(new URL('./supabase.ts', import.meta.url), 'utf8');
 
 describe('AuthProvider session synchronization', () => {
   it('does not swallow a rejected commercial profile lookup', () => {
@@ -13,5 +14,11 @@ describe('AuthProvider session synchronization', () => {
   it('keeps the Supabase auth callback synchronous', () => {
     expect(source).toContain('onAuthStateChange((_event, session) =>');
     expect(source).not.toContain('onAuthStateChange(async');
+  });
+
+  it('uses the official SSR browser client without custom session cookies', () => {
+    expect(supabaseSource).toContain('createBrowserClient');
+    expect(source).not.toContain('session-cookie');
+    expect(source).not.toContain('setSessionCookies');
   });
 });

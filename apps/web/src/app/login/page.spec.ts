@@ -3,15 +3,10 @@ import { describe, expect, it } from 'vitest';
 
 const source = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 
-describe('LoginPage password visibility', () => {
-  it('provides an accessible control to show and hide the password', () => {
-    expect(source).toContain("const [showPassword, setShowPassword] = useState(false)");
-    expect(source).toContain("type={showPassword ? 'text' : 'password'}");
-    expect(source).toContain('aria-label={showPassword ? \'Ocultar contraseña\' : \'Mostrar contraseña\'}');
-  });
-
-  it('replaces the login route after successful authentication', () => {
-    expect(source).toContain("router.replace('/admin')");
-    expect(source).toContain("router.replace('/seller')");
+describe('legacy login route', () => {
+  it('has no duplicate form and redirects to the canonical portal', () => {
+    expect(source).toContain("redirect('/portal')");
+    expect(source).not.toContain('signInWithPassword');
+    expect(source).not.toContain('<form');
   });
 });
