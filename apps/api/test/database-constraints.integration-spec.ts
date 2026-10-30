@@ -73,4 +73,23 @@ describeWithDatabase('database financial constraints', () => {
     ).rejects.toMatchObject({ code: '23505' });
     await client.query('ROLLBACK TO SAVEPOINT duplicate_code');
   });
+
+  it('enforces row level security on all business tables', async () => {
+    const res = await client.query<{ relname: string; relrowsecurity: boolean }>(`
+      SELECT c.relname, c.relrowsecurity
+      FROM pg_class c
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public'
+        AND c.relkind = 'r'
+        AND c.relname != '_prisma_migrations'
+    `);
+
+    expect(res.rows.length).toBeGreaterThanOrEqual(13);
+    for (const row of res.rows) {
+      expect(row.relrowsecurity, `RLS should be enabled on table ${row.relname}`).toBe(true);
+    }
+
+    const payoutItems = res.rows.find((r) => r.relname === 'commission_payout_items');
+    expect(payoutItems?.relrowsecurity).toBe(true);
+  });
 });
