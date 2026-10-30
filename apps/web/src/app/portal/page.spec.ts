@@ -41,4 +41,13 @@ describe('PortalLoginPage accessibility and UX/UI contracts', () => {
     expect(source).toContain('resolvePortalDestination(user.role, redirectParam)');
     expect(source).toContain('resolvePortalDestination(loggedUser.role, redirectParam)');
   });
+
+  it('uses the shared brand logo as the portal heading', () => {
+    expect(source).not.toContain('src="/sakura-logo.png"');
+    expect(source).not.toContain('src="/sakura-favicon.png"');
+    expect(source).not.toContain('src="/sakura-portal-brand.png"');
+    expect(source).not.toContain('Ingreso a');
+    expect(source).toContain('src="/sakura-brand.webp"');
+    expect(source).toContain('alt="Sakura Makeup"');
+  });
 });
