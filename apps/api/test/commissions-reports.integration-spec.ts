@@ -55,8 +55,12 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
 
   afterAll(async () => {
     await prisma.auditLog.deleteMany({ where: { actorId: { in: [sellerId, adminId] } } });
+    if (createdPayoutIds.length > 0) {
+      await prisma.commissionPayoutItem.deleteMany({ where: { payoutId: { in: createdPayoutIds } } });
+      await prisma.commissionPayout.deleteMany({ where: { id: { in: createdPayoutIds } } });
+    }
     await prisma.commission.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.commissionPayout.deleteMany({ where: { id: { in: createdPayoutIds } } });
+    await prisma.paymentProof.deleteMany({ where: { payment: { is: { orderId: { in: createdOrderIds } } } } });
     await prisma.payment.deleteMany({ where: { orderId: { in: createdOrderIds } } });
     await prisma.orderItem.deleteMany({ where: { orderId: { in: createdOrderIds } } });
     await prisma.order.deleteMany({ where: { id: { in: createdOrderIds } } });
