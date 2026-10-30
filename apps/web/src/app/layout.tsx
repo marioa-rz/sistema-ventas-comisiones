@@ -43,7 +43,9 @@ export const metadata: Metadata = {
     images: ['/opengraph-image'],
   },
   icons: {
-    icon: '/icon.svg',
+    icon: [{ url: '/sakura-favicon.png', type: 'image/png', sizes: '512x512' }],
+    shortcut: '/sakura-favicon.png',
+    apple: '/sakura-favicon.png',
   },
 };
 

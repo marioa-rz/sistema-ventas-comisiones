@@ -23,6 +23,15 @@
   --catalog-muted: #765e6a;
   --catalog-accent: #c2186a;
   --catalog-accent-strong: #9e0f55;
+  --motion-duration-fast: 160ms;
+  --motion-duration-base: 280ms;
+  --motion-duration-slow: 560ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -79,6 +88,199 @@ input:-webkit-autofill:active {
     linear-gradient(145deg, #fff9fb, #f3d7e3);
 }
 
+@keyframes customer-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes customer-mask-reveal {
+  from {
+    clip-path: inset(8% 6% 8% 6% round 3rem);
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    clip-path: inset(-25% round 0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes customer-dolly {
+  from {
+    opacity: 0;
+    transform: perspective(900px) translate3d(0, 12px, 48px) scale(1.08);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes customer-value-change {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.72);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes customer-feedback {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes customer-parallax {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.06);
+  }
+}
+
+@keyframes customer-search-close {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(10px, 0, 0) scale(0.98);
+  }
+}
+
+.motion-hero-copy > * {
+  animation: customer-enter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+}
+
+.motion-hero-copy > :nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.motion-hero-copy > :nth-child(3) {
+  animation-delay: 140ms;
+}
+
+.motion-hero-copy > :nth-child(4) {
+  animation-delay: 210ms;
+}
+
+.motion-mask {
+  animation: customer-mask-reveal 720ms var(--motion-ease-emphasized) both;
+}
+
+.motion-dolly {
+  animation: customer-dolly 820ms var(--motion-ease-emphasized) 100ms both;
+  transform-origin: center 62%;
+}
+
+.motion-parallax {
+  animation: customer-parallax 8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.motion-parallax-reverse {
+  animation-direction: alternate-reverse;
+  animation-duration: 10s;
+}
+
+.motion-stagger > .motion-stagger-item {
+  animation: customer-enter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+  animation-delay: calc(var(--motion-index, 0) * 55ms);
+}
+
+.motion-card {
+  position: relative;
+  isolation: isolate;
+  transition:
+    transform var(--motion-duration-base) var(--motion-ease-emphasized),
+    box-shadow var(--motion-duration-base) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.motion-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 25%, rgba(255, 255, 255, 0.34) 48%, transparent 72%);
+  content: '';
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(-35%, 0, 0);
+  transition:
+    opacity var(--motion-duration-fast) var(--motion-ease-standard),
+    transform 620ms var(--motion-ease-emphasized);
+}
+
+.motion-card-media {
+  transition: transform 520ms var(--motion-ease-emphasized);
+}
+
+.motion-value-change {
+  animation: customer-value-change 360ms var(--motion-ease-emphasized) both;
+}
+
+.motion-search-reveal {
+  animation: customer-enter var(--motion-duration-base) var(--motion-ease-emphasized) both;
+}
+
+.motion-search-hide {
+  animation: customer-search-close 220ms var(--motion-ease-standard) both;
+  pointer-events: none;
+}
+
+.motion-enter {
+  animation: customer-enter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+}
+
+.motion-feedback {
+  animation: customer-feedback var(--motion-duration-base) var(--motion-ease-emphasized) both;
+}
+
+.motion-confirmation {
+  animation: customer-enter var(--motion-duration-slow) var(--motion-ease-emphasized) both;
+}
+
+.motion-confirmation-card {
+  animation: customer-feedback 480ms var(--motion-ease-emphasized) 90ms both;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .motion-card:hover {
+    transform: translate3d(0, -6px, 0);
+  }
+
+  .motion-card:hover::after {
+    opacity: 0.72;
+    transform: translate3d(35%, 0, 0);
+  }
+
+  .motion-card:hover .motion-card-media {
+    transform: scale(1.055);
+  }
+}
+
 .legal-copy {
   font-size: 1rem;
   line-height: 1.75;
@@ -123,6 +325,27 @@ input:-webkit-autofill:active {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .motion-hero-copy > *,
+  .motion-mask,
+  .motion-dolly,
+  .motion-parallax,
+  .motion-stagger > .motion-stagger-item,
+  .motion-value-change,
+  .motion-search-reveal,
+  .motion-search-hide,
+  .motion-enter,
+  .motion-feedback,
+  .motion-confirmation,
+  .motion-confirmation-card {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .motion-card::after {
+    display: none;
   }
 }
 
