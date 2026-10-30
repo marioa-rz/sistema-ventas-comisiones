@@ -55,20 +55,51 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
 
   afterAll(async () => {
     await prisma.auditLog.deleteMany({ where: { actorId: { in: [sellerId, adminId] } } });
+
+    // 1. Delete payout items so commissions and payouts are no longer referenced by items
     if (createdPayoutIds.length > 0) {
       await prisma.commissionPayoutItem.deleteMany({ where: { payoutId: { in: createdPayoutIds } } });
+    }
+
+    // 2. Unlink commissions from payouts so payouts are no longer referenced by commissions.payout_id
+    if (createdOrderIds.length > 0) {
+      await prisma.commission.updateMany({
+        where: { orderId: { in: createdOrderIds } },
+        data: { payoutId: null },
+      });
+    }
+
+    // 3. Delete payouts (safe because neither payout_items nor commissions.payout_id reference them)
+    if (createdPayoutIds.length > 0) {
       await prisma.commissionPayout.deleteMany({ where: { id: { in: createdPayoutIds } } });
     }
-    await prisma.commission.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.paymentProof.deleteMany({ where: { payment: { is: { orderId: { in: createdOrderIds } } } } });
-    await prisma.payment.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.orderItem.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.order.deleteMany({ where: { id: { in: createdOrderIds } } });
-    await prisma.customer.deleteMany({ where: { id: { in: createdCustomerIds } } });
-    await prisma.productVariant.delete({ where: { id: variantId } });
-    await prisma.product.delete({ where: { id: productId } });
-    await prisma.category.delete({ where: { id: categoryId } });
+
+    // 4. Delete commissions (safe because payout items no longer reference them)
+    if (createdOrderIds.length > 0) {
+      await prisma.commission.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+    }
+
+    // 5. Delete payment proofs, payments, order items, and orders
+    if (createdOrderIds.length > 0) {
+      await prisma.paymentProof.deleteMany({ where: { payment: { is: { orderId: { in: createdOrderIds } } } } });
+      await prisma.payment.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+      await prisma.orderItem.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+      await prisma.order.deleteMany({ where: { id: { in: createdOrderIds } } });
+    }
+
+    // 6. Delete customers
+    if (createdCustomerIds.length > 0) {
+      await prisma.customer.deleteMany({ where: { id: { in: createdCustomerIds } } });
+    }
+
+    // 7. Delete catalog items
+    await prisma.productVariant.deleteMany({ where: { id: variantId } });
+    await prisma.product.deleteMany({ where: { id: productId } });
+    await prisma.category.deleteMany({ where: { id: categoryId } });
+
+    // 8. Delete test users
     await prisma.appUser.deleteMany({ where: { id: { in: [sellerId, adminId] } } });
+
     await prisma.$disconnect();
   });
 
