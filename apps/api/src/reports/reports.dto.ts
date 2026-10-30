@@ -4,6 +4,7 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID, Matches } from 'class
 export enum ReportFormat {
   JSON = 'json',
   CSV = 'csv',
+  XLSX = 'xlsx',
 }
 
 export class SalesReportQueryDto {

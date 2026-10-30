@@ -50,6 +50,12 @@ describe('Next.js build asset isolation', () => {
     expect(rootLayout).toContain('<html lang="es-GT"');
   });
 
+  it('publishes the Sakura brand symbol as the browser icon', () => {
+    expect(rootLayout).toContain("icon: [{ url: '/sakura-favicon.png', type: 'image/png', sizes: '512x512' }]");
+    expect(rootLayout).toContain("shortcut: '/sakura-favicon.png'");
+    expect(rootLayout).toContain("apple: '/sakura-favicon.png'");
+  });
+
   it('indexes only public routes and exposes a public sitemap', () => {
     expect(robots).not.toContain("disallow: ['/admin', '/seller', '/login', '/cart', '/order-confirmation']");
     expect(robots).toContain("sitemap: `${siteUrl.origin}/sitemap.xml`");
@@ -65,6 +71,15 @@ describe('Next.js build asset isolation', () => {
     expect(footer).toContain('href="/privacidad"');
     expect(footer).toContain('href="/cookies"');
     expect(footer).toContain('Sakura Makeup');
+  });
+
+  it('presents location and contact information with accessible footer landmarks', () => {
+    expect(footer).toContain("import { MapPin } from 'lucide-react'");
+    expect(footer).toContain('<address');
+    expect(footer).toContain('Villa Hermosa, San Miguel Petapa');
+    expect(footer).toContain('Contacto');
+    expect(footer).toContain('Síguenos');
+    expect(footer).toContain('aria-label="Información de contacto"');
   });
 
   it('keeps Supabase authentication out of the public catalog shell', () => {

@@ -7,6 +7,7 @@ export type { CartItem } from './cart-storage';
 
 interface CartContextType {
   items: CartItem[];
+  isInitialized: boolean;
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
@@ -90,6 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     <CartContext.Provider
       value={{
         items,
+        isInitialized,
         addItem,
         removeItem,
         updateQuantity,

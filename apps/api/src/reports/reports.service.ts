@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import Decimal from 'decimal.js';
+import ExcelJS from 'exceljs';
 import {
   formatGuatemalaDate,
   getGuatemalaDayRange,
@@ -297,6 +298,217 @@ export class ReportsService {
     });
 
     return [headers.join(','), ...rows].join('\n');
+  }
+
+  async exportSalesXlsx(query: SalesReportQueryDto): Promise<Buffer> {
+    let dateRange: { startUtc: Date; endUtc: Date };
+    try {
+      dateRange = parseDateRangeInGuatemala(query.startDate, query.endDate);
+    } catch (err: any) {
+      throw new BadRequestException(err.message ?? 'Invalid date range');
+    }
+
+    const where: Prisma.OrderWhereInput = {
+      status: 'CONFIRMED',
+      confirmedAt: {
+        gte: dateRange.startUtc,
+        lt: dateRange.endUtc,
+      },
+      ...(query.sellerId ? { sellerId: query.sellerId } : {}),
+    };
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        customer: { select: { name: true, phone: true } },
+        seller: { select: { id: true, displayName: true } },
+        payment: { select: { method: true } },
+        commission: { select: { status: true, amount: true } },
+      },
+      orderBy: { confirmedAt: 'asc' },
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Sakura Makeup';
+    workbook.created = new Date();
+
+    // Agrupación por vendedora para cálculo de comisiones
+    interface SellerCommissionSummary {
+      sellerName: string;
+      ordersCount: number;
+      totalSales: Decimal;
+      totalCommission: Decimal;
+      approvedCommission: Decimal;
+      paidCommission: Decimal;
+    }
+
+    const sellerMap = new Map<string, SellerCommissionSummary>();
+
+    for (const ord of orders) {
+      const sellerKey = ord.sellerId ?? 'unassigned';
+      const sellerName = ord.seller?.displayName ?? 'Sin vendedora asignada';
+      const orderTotal = new Decimal(ord.totalAmount);
+      const commissionTotal = new Decimal(ord.commissionAmount);
+      const status = ord.commission?.status ?? 'APPROVED';
+
+      const entry = sellerMap.get(sellerKey) ?? {
+        sellerName,
+        ordersCount: 0,
+        totalSales: new Decimal(0),
+        totalCommission: new Decimal(0),
+        approvedCommission: new Decimal(0),
+        paidCommission: new Decimal(0),
+      };
+
+      entry.ordersCount += 1;
+      entry.totalSales = entry.totalSales.plus(orderTotal);
+      entry.totalCommission = entry.totalCommission.plus(commissionTotal);
+
+      if (status === 'PAID') {
+        entry.paidCommission = entry.paidCommission.plus(commissionTotal);
+      } else {
+        entry.approvedCommission = entry.approvedCommission.plus(commissionTotal);
+      }
+
+      sellerMap.set(sellerKey, entry);
+    }
+
+    // 1. Hoja principal: Resumen de Comisiones por Vendedora (primera para visualización directa)
+    const summarySheet = workbook.addWorksheet('Resumen Comisiones');
+
+    summarySheet.columns = [
+      { header: 'Vendedora', key: 'vendedora', width: 28 },
+      { header: 'Pedidos Confirmados', key: 'pedidos', width: 22 },
+      { header: 'Ventas Totales', key: 'ventas', width: 20 },
+      { header: 'Comisión Total Ganada', key: 'comisionTotal', width: 24 },
+      { header: 'Por Pagar (Aprobada)', key: 'porPagar', width: 24 },
+      { header: 'Ya Pagada', key: 'pagada', width: 20 },
+    ];
+
+    const summaryHeaderRow = summarySheet.getRow(1);
+    summaryHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    summaryHeaderRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1A0B14' },
+    };
+    summaryHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    summaryHeaderRow.height = 26;
+
+    // Ordenar de mayor a menor comisión ganada
+    const sortedSellers = Array.from(sellerMap.values()).sort((a, b) =>
+      b.totalCommission.minus(a.totalCommission).toNumber(),
+    );
+
+    let grandOrders = 0;
+    let grandSales = new Decimal(0);
+    let grandCommission = new Decimal(0);
+    let grandApproved = new Decimal(0);
+    let grandPaid = new Decimal(0);
+
+    for (const s of sortedSellers) {
+      grandOrders += s.ordersCount;
+      grandSales = grandSales.plus(s.totalSales);
+      grandCommission = grandCommission.plus(s.totalCommission);
+      grandApproved = grandApproved.plus(s.approvedCommission);
+      grandPaid = grandPaid.plus(s.paidCommission);
+
+      const row = summarySheet.addRow({
+        vendedora: s.sellerName,
+        pedidos: s.ordersCount,
+        ventas: s.totalSales.toNumber(),
+        comisionTotal: s.totalCommission.toNumber(),
+        porPagar: s.approvedCommission.toNumber(),
+        pagada: s.paidCommission.toNumber(),
+      });
+
+      row.getCell('pedidos').alignment = { vertical: 'middle', horizontal: 'center' };
+      row.getCell('ventas').numFmt = '"Q"#,##0.00';
+      row.getCell('comisionTotal').numFmt = '"Q"#,##0.00';
+      row.getCell('porPagar').numFmt = '"Q"#,##0.00';
+      row.getCell('pagada').numFmt = '"Q"#,##0.00';
+      row.alignment = { vertical: 'middle' };
+    }
+
+    if (sortedSellers.length > 0) {
+      const totalRow = summarySheet.addRow({
+        vendedora: 'TOTAL GENERAL',
+        pedidos: grandOrders,
+        ventas: grandSales.toNumber(),
+        comisionTotal: grandCommission.toNumber(),
+        porPagar: grandApproved.toNumber(),
+        pagada: grandPaid.toNumber(),
+      });
+      totalRow.font = { bold: true };
+      totalRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFF5E8F0' },
+      };
+      totalRow.getCell('pedidos').alignment = { vertical: 'middle', horizontal: 'center' };
+      totalRow.getCell('ventas').numFmt = '"Q"#,##0.00';
+      totalRow.getCell('comisionTotal').numFmt = '"Q"#,##0.00';
+      totalRow.getCell('porPagar').numFmt = '"Q"#,##0.00';
+      totalRow.getCell('pagada').numFmt = '"Q"#,##0.00';
+      totalRow.alignment = { vertical: 'middle' };
+      totalRow.height = 24;
+    }
+
+    // 2. Hoja secundaria: Detalle individual de ventas
+    const detailSheet = workbook.addWorksheet('Detalle de Ventas');
+
+    detailSheet.columns = [
+      { header: 'Fecha', key: 'fecha', width: 14 },
+      { header: 'Código Pedido', key: 'codigo', width: 16 },
+      { header: 'Vendedora', key: 'vendedor', width: 22 },
+      { header: 'Cliente', key: 'cliente', width: 24 },
+      { header: 'Monto Total', key: 'total', width: 16 },
+      { header: 'Comisión', key: 'comision', width: 16 },
+      { header: 'Estado Comisión', key: 'estadoComision', width: 22 },
+      { header: 'Método Pago', key: 'metodo', width: 16 },
+      { header: 'Fecha Confirmación (UTC)', key: 'confirmadoUtc', width: 26 },
+    ];
+
+    const detailHeaderRow = detailSheet.getRow(1);
+    detailHeaderRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    detailHeaderRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1A0B14' },
+    };
+    detailHeaderRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    detailHeaderRow.height = 24;
+
+    const translateCommissionStatus: Record<string, string> = {
+      APPROVED: 'Por Pagar (Aprobada)',
+      PAID: 'Pagada',
+      PENDING: 'Pendiente',
+    };
+
+    for (const ord of orders) {
+      const commStatusRaw = ord.commission?.status ?? 'APPROVED';
+      const commStatusLabel = translateCommissionStatus[commStatusRaw] ?? commStatusRaw;
+
+      const row = detailSheet.addRow({
+        fecha: ord.confirmedAt ? formatGuatemalaDate(ord.confirmedAt) : '',
+        codigo: ord.publicCode,
+        vendedor: ord.seller?.displayName ?? 'Sin vendedora asignada',
+        cliente: ord.customer?.name ?? '',
+        total: new Decimal(ord.totalAmount).toNumber(),
+        comision: new Decimal(ord.commissionAmount).toNumber(),
+        estadoComision: commStatusLabel,
+        metodo: ord.payment?.method ?? '',
+        confirmadoUtc: ord.confirmedAt?.toISOString() ?? '',
+      });
+
+      row.getCell('total').numFmt = '"Q"#,##0.00';
+      row.getCell('comision').numFmt = '"Q"#,##0.00';
+      row.getCell('estadoComision').alignment = { vertical: 'middle', horizontal: 'center' };
+      row.alignment = { vertical: 'middle' };
+    }
+
+    const uint8Array = await workbook.xlsx.writeBuffer();
+    return Buffer.from(uint8Array);
   }
 
   private escapeCsvField(val: string): string {

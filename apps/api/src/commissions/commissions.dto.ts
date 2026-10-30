@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMinSize,
   ArrayNotEmpty,
@@ -11,11 +11,24 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   Max,
   MaxLength,
   Min,
 } from 'class-validator';
-import { CommissionStatus } from '../generated/prisma/client';
+import { CommissionPayoutMethod, CommissionStatus } from '../generated/prisma/client';
+
+function parseCommissionIds({ value }: { value: unknown }) {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return value.split(',').map((id: string) => id.trim()).filter(Boolean);
+    }
+  }
+  return value;
+}
 
 export class SellerCommissionFiltersDto {
   @ApiPropertyOptional({ enum: CommissionStatus, description: 'Filter by commission status' })
@@ -83,12 +96,17 @@ export class CreateCommissionPayoutDto {
   sellerId!: string;
 
   @ApiProperty({ description: 'List of approved commission IDs to settle (UUIDs)', type: [String] })
+  @Transform(parseCommissionIds)
   @IsArray()
   @ArrayNotEmpty()
   @ArrayMinSize(1)
   @ArrayUnique()
   @IsUUID('4', { each: true })
   commissionIds!: string[];
+
+  @ApiProperty({ enum: CommissionPayoutMethod, description: 'How the commission payout is delivered' })
+  @IsEnum(CommissionPayoutMethod)
+  method!: CommissionPayoutMethod;
 
   @ApiPropertyOptional({ description: 'Bank transfer reference or check number', maxLength: 160 })
   @IsOptional()
@@ -107,6 +125,30 @@ export class CreateCommissionPayoutDto {
   @IsNotEmpty()
   @MaxLength(128)
   idempotencyKey!: string;
+}
+
+export class UpdateSellerPayoutSettingsDto {
+  @ApiProperty({ description: 'Bank selected by the authenticated seller', maxLength: 120 })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(120)
+  bankName!: string;
+
+  @ApiProperty({ description: 'Bank account number supplied by the authenticated seller', maxLength: 80 })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(80)
+  bankAccountNumber!: string;
+}
+
+export class CancelCommissionPayoutDto {
+  @ApiProperty({ description: 'Audited reason for cancelling the payout', maxLength: 500 })
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/\S/, { message: 'reason must not be empty or whitespace only' })
+  @MaxLength(500)
+  reason!: string;
 }
 
 export class AdminPayoutFiltersDto {

@@ -43,10 +43,39 @@ describe('AdminDashboardPage API contract', () => {
     expect(source).toContain('disabled={processingPaymentId === pendingDecision.orderId}');
   });
 
-  it('labels report dates and exposes the CSV loading state', () => {
+  it('labels report dates and exposes the Excel loading state', () => {
     expect(source).toContain('htmlFor="report-start-date"');
     expect(source).toContain('htmlFor="report-end-date"');
     expect(source).toContain('disabled={isDownloadingReport}');
-    expect(source).toContain("isDownloadingReport ? 'Descargando…' : 'Descargar CSV'");
+    expect(source).toContain("isDownloadingReport ? 'Descargando…' : 'Descargar Excel'");
+  });
+
+  it('registers commission payouts with a method and private transfer proof', () => {
+    expect(source).toContain("useState<'CASH' | 'TRANSFER'>('TRANSFER')");
+    expect(source).toContain('const [payoutProofFile, setPayoutProofFile]');
+    expect(source).toContain("formData.append('method', payoutMethod)");
+    expect(source).toContain("formData.append('proof', payoutProofFile)");
+    expect(source).toContain('accept="image/jpeg,image/png"');
+    expect(source).toContain('payoutTargetSeller.bankName');
+    expect(source).toContain('payoutTargetSeller.bankAccountNumber');
+    expect(source).not.toContain('No. Boleta / Referencia de Transferencia');
+    expect(source).not.toContain('payoutReference');
+  });
+
+  it('shows payout history, private evidence and an accessible cancellation flow', () => {
+    expect(source).toContain("apiClient<AdminCommissionPayout[]>('admin/commission-payouts?limit=100'");
+    expect(source).toContain('Historial de pagos a vendedoras');
+    expect(source).toContain('commission-payouts/${payout.id}/proof-url');
+    expect(source).toContain('commission-payouts/${payoutToCancel.id}/cancel');
+    expect(source).toContain("method: 'PATCH'");
+    expect(source).toContain('htmlFor="payout-cancellation-reason"');
+    expect(source).toContain('id="payout-cancellation-reason"');
+  });
+
+  it('correctly displays rejected payments and suppresses redundant verification actions', () => {
+    expect(source).toContain("ord.payment?.status === 'REJECTED'");
+    expect(source).toContain('COMPROBANTE RECHAZADO');
+    expect(source).toContain('Comprobante Rechazado');
+    expect(source).toContain("ord.payment?.status === 'PENDING'");
   });
 });

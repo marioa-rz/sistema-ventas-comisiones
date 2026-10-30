@@ -17,10 +17,13 @@ export interface StoredPaymentProof {
 
 @Injectable()
 export class PaymentProofStorage {
-  async upload(file: PaymentProofFile): Promise<StoredPaymentProof> {
+  async upload(
+    file: PaymentProofFile,
+    folder: 'orders/pending' | 'commission-payouts/pending' = 'orders/pending',
+  ): Promise<StoredPaymentProof> {
     const extension = this.validate(file);
     const configuration = this.configuration();
-    const path = `orders/pending/${randomUUID()}.${extension}`;
+    const path = `${folder}/${randomUUID()}.${extension}`;
     const response = await fetch(this.objectUrl(configuration, path), {
       method: 'POST',
       headers: {

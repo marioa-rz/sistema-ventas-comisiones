@@ -96,7 +96,10 @@ export async function apiDownload(endpoint: string, token: string): Promise<Blob
   let response: Response;
   try {
     response = await fetch(url, {
-      headers: { Accept: 'text/csv', Authorization: `Bearer ${token}` },
+      headers: {
+        Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, */*',
+        Authorization: `Bearer ${token}`,
+      },
     });
   } catch (networkError) {
     if (networkError instanceof TypeError) {

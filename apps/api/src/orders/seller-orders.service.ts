@@ -22,6 +22,16 @@ const sellerOrderSelect = {
       quantity: true,
       subtotal: true,
       commissionAmount: true,
+      productVariant: {
+        select: {
+          imagePath: true,
+          product: {
+            select: {
+              mainImagePath: true,
+            },
+          },
+        },
+      },
     },
   },
   payment: { select: { method: true, status: true, cashReceivedAt: true } },

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { DM_Serif_Display } from 'next/font/google';
 import Image from 'next/image';
 import {
   ArrowRight,
   Check,
-  Heart,
+  Minus,
   PackageCheck,
+  Plus,
   Search,
   ShieldCheck,
   ShoppingBag,
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../lib/api';
 import { useCart } from '../lib/cart-context';
+import { useCatalogSearch } from '../lib/catalog-search-context';
 import {
   filterAndSortProducts,
   loadAllCatalogProducts,
@@ -27,6 +30,13 @@ interface Category {
   slug: string;
 }
 
+const dmSerifDisplay = DM_Serif_Display({
+  subsets: ['latin'],
+  weight: '400',
+  style: ['normal', 'italic'],
+  display: 'swap',
+});
+
 const trustItems = [
   { icon: Truck, title: 'Envíos a toda Guatemala', detail: 'Coordina la entrega con tu vendedora' },
   { icon: PackageCheck, title: 'Productos seleccionados', detail: 'Catálogo actualizado por Sakura Makeup' },
@@ -37,13 +47,13 @@ export default function CatalogPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const { searchQuery, setSearchQuery } = useCatalogSearch();
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [addedAnimation, setAddedAnimation] = useState<Record<string, boolean>>({});
-  const { addItem } = useCart();
+  const { addItem, items: cartItems, updateQuantity } = useCart();
 
   useEffect(() => {
     const loadCatalog = async () => {
@@ -108,24 +118,24 @@ export default function CatalogPage() {
 
   return (
     <div className="catalog-shell overflow-hidden rounded-[2rem] border border-catalog-border bg-catalog-canvas text-catalog-ink shadow-[0_24px_80px_rgba(45,12,31,0.24)]">
-      <section className="catalog-hero relative isolate min-h-[520px] overflow-hidden px-6 py-10 sm:px-12 sm:py-16 lg:px-16">
-        <div className="catalog-orb catalog-orb-one" />
-        <div className="catalog-orb catalog-orb-two" />
+      <section className="catalog-hero relative isolate min-h-[480px] overflow-hidden px-5 py-8 sm:min-h-[520px] sm:px-12 sm:py-16 lg:px-16">
+        <div className="catalog-orb catalog-orb-one motion-parallax" />
+        <div className="catalog-orb catalog-orb-two motion-parallax motion-parallax-reverse" />
 
-        <div className="relative z-10 grid min-h-[420px] items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="max-w-2xl">
-            <span className="mb-6 inline-flex items-center rounded-full border border-catalog-accent/20 bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-catalog-accent backdrop-blur">
+        <div className="relative z-10 grid min-h-[380px] items-center gap-8 sm:min-h-[420px] sm:gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="motion-hero-copy max-w-2xl">
+            <span className="mb-4 inline-flex items-center rounded-full border border-catalog-accent/20 bg-white/70 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-catalog-accent backdrop-blur sm:mb-6 sm:px-4 sm:py-2 sm:text-xs sm:tracking-[0.2em]">
               Tu ritual, tu estilo
             </span>
-            <h1 aria-label="Belleza que se siente tuya" className="font-serif text-5xl font-semibold leading-[0.98] tracking-[-0.04em] text-catalog-ink sm:text-6xl lg:text-7xl">
+            <h1 aria-label="Belleza que se siente tuya" className={`${dmSerifDisplay.className} text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-catalog-ink sm:text-6xl sm:leading-[0.98] lg:text-7xl`}>
               Belleza que se
               <span className="block italic text-catalog-accent">siente tuya</span>
             </h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-catalog-muted sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-6 text-catalog-muted sm:mt-6 sm:text-lg sm:leading-7">
               Descubre tonos, tratamientos y esenciales elegidos para acompañar cada versión de ti.
               Compra sin registrarte y finaliza tu pedido con una vendedora Sakura.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-2 sm:mt-8 sm:flex-row sm:items-center">
               <a
                 href="#productos"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-catalog-accent px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_30px_rgba(194,24,106,0.28)] transition hover:-translate-y-0.5 hover:bg-catalog-accent-strong focus:outline-none focus:ring-2 focus:ring-catalog-accent focus:ring-offset-2"
@@ -133,30 +143,30 @@ export default function CatalogPage() {
                 Explorar colección
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </a>
-              <span className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-catalog-muted">
+              <span className="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-catalog-muted sm:px-2">
                 <Check className="h-4 w-4 text-catalog-accent" aria-hidden="true" />
                 Pedido rápido y sin cuenta
               </span>
             </div>
           </div>
 
-          <div className="relative mx-auto flex h-[350px] w-full max-w-[440px] items-center justify-center sm:h-[410px]">
+          <div className="motion-mask relative mx-auto flex h-[300px] w-full max-w-[440px] items-center justify-center sm:h-[410px]">
             <div className="absolute inset-4 rotate-3 rounded-[3rem] border border-white/80 bg-white/45 shadow-[0_30px_80px_rgba(76,30,53,0.15)] backdrop-blur-sm" />
-            <div className="absolute left-0 top-12 rounded-2xl bg-white/85 px-4 py-3 text-xs font-bold text-catalog-ink shadow-lg backdrop-blur">
+            <div className="absolute left-0 top-8 z-10 rounded-2xl border border-white/80 bg-white/90 px-3 py-2.5 text-xs font-bold text-catalog-ink shadow-xl backdrop-blur sm:top-12 sm:px-4 sm:py-3">
               <span className="block text-[10px] uppercase tracking-widest text-catalog-muted">Descubre</span>
               Tu próximo favorito
             </div>
-            <div className="relative h-56 w-56 sm:h-64 sm:w-64">
+            <div className="motion-dolly relative h-56 w-56 sm:h-72 sm:w-72">
               <Image
-                src="/sakura-logo.png"
-                alt="Sakura Makeup"
+                src="/collage-maquillaje.webp"
+                alt="Colección de maquillaje Sakura"
                 fill
                 priority
-                className="object-contain drop-shadow-[0_24px_32px_rgba(194,24,106,0.2)]"
+                sizes="(max-width: 640px) 240px, 288px"
+                className="object-contain drop-shadow-[0_20px_35px_rgba(194,24,106,0.22)]"
               />
             </div>
-            <div className="absolute bottom-5 right-0 rounded-2xl border border-white/80 bg-white/85 p-4 shadow-xl backdrop-blur">
-              <Heart className="mb-2 h-5 w-5 fill-catalog-accent text-catalog-accent" aria-hidden="true" />
+            <div className="absolute bottom-3 right-0 rounded-2xl border border-white/80 bg-white/85 p-3 shadow-xl backdrop-blur sm:bottom-5 sm:p-4">
               <p className="text-sm font-bold text-catalog-ink">Elegido para ti</p>
               <p className="mt-0.5 text-xs text-catalog-muted">Tonos con personalidad</p>
             </div>
@@ -164,9 +174,13 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <section aria-label="Beneficios de comprar en Sakura Makeup" className="grid border-y border-catalog-border bg-white md:grid-cols-3">
-        {trustItems.map(({ icon: Icon, title, detail }) => (
-          <div key={title} className="flex items-center gap-4 border-b border-catalog-border px-6 py-5 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 lg:px-9">
+      <section aria-label="Beneficios de comprar en Sakura Makeup" className="motion-stagger grid border-y border-catalog-border bg-white md:grid-cols-3">
+        {trustItems.map(({ icon: Icon, title, detail }, index) => (
+          <div
+            key={title}
+            style={{ '--motion-index': index } as React.CSSProperties}
+            className="motion-stagger-item flex items-center gap-4 border-b border-catalog-border px-5 py-4 last:border-b-0 sm:px-6 sm:py-5 md:border-b-0 md:border-r md:last:border-r-0 lg:px-9"
+          >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-catalog-blush text-catalog-accent">
               <Icon className="h-5 w-5" aria-hidden="true" />
             </span>
@@ -178,33 +192,19 @@ export default function CatalogPage() {
         ))}
       </section>
 
-      <section id="productos" className="scroll-mt-32 px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-        <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-catalog-accent">Colección Sakura</p>
-            <h2 className="mt-2 font-serif text-3xl font-semibold text-catalog-ink sm:text-4xl">Encuentra tu favorito</h2>
-            <p className="mt-2 text-sm text-catalog-muted">Explora por categoría o encuentra rápidamente un producto o tono.</p>
-          </div>
-
-          <div className="relative w-full lg:max-w-md">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-catalog-muted" aria-hidden="true" />
-            <input
-              type="search"
-              aria-label="Buscar productos"
-              placeholder="Buscar producto, categoría o tono"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              className="w-full rounded-full border border-catalog-border bg-white py-3 pl-11 pr-4 text-sm text-catalog-ink shadow-sm outline-none transition placeholder:text-catalog-muted/70 focus:border-catalog-accent focus:ring-2 focus:ring-catalog-accent/15"
-            />
-          </div>
+      <section id="productos" className="scroll-mt-32 px-4 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-14">
+        <div className="mb-7 flex flex-col gap-2">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-catalog-accent">Colección Sakura</p>
+          <h2 className="mt-1 font-serif text-3xl font-semibold text-catalog-ink sm:text-4xl">Encuentra tu favorito</h2>
+          <p className="mt-1 text-sm text-catalog-muted">Explora por categoría o busca tu tono favorito.</p>
         </div>
 
-        <nav className="mb-7 flex gap-2 overflow-x-auto pb-2" aria-label="Filtrar por categoría">
+        <nav className="mb-7 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-2" aria-label="Filtrar por categoría">
           <button
             type="button"
             onClick={() => setSelectedCategory('')}
             aria-pressed={!selectedCategory}
-            className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+            className={`shrink-0 snap-start min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold transition ${
               !selectedCategory
                 ? 'bg-catalog-ink text-white shadow-md'
                 : 'border border-catalog-border bg-white text-catalog-muted hover:border-catalog-accent hover:text-catalog-accent'
@@ -218,7 +218,7 @@ export default function CatalogPage() {
               type="button"
               onClick={() => setSelectedCategory(category.id)}
               aria-pressed={selectedCategory === category.id}
-              className={`shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition ${
+              className={`shrink-0 snap-start min-h-11 rounded-full px-5 py-2.5 text-sm font-semibold transition ${
                 selectedCategory === category.id
                   ? 'bg-catalog-ink text-white shadow-md'
                   : 'border border-catalog-border bg-white text-catalog-muted hover:border-catalog-accent hover:text-catalog-accent'
@@ -234,13 +234,13 @@ export default function CatalogPage() {
             <strong className="text-catalog-ink">{visibleProducts.length}</strong>{' '}
             {visibleProducts.length === 1 ? 'producto encontrado' : 'productos encontrados'}
           </p>
-          <label className="flex items-center gap-3 text-sm font-semibold text-catalog-muted">
+          <label className="flex w-full items-center gap-3 text-sm font-semibold text-catalog-muted sm:w-auto">
             Ordenar por
             <select
               aria-label="Ordenar productos"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value as SortOption)}
-              className="rounded-full border border-catalog-border bg-white px-4 py-2 text-sm text-catalog-ink outline-none focus:border-catalog-accent focus:ring-2 focus:ring-catalog-accent/15"
+              className="min-h-11 min-w-0 flex-1 rounded-full border border-catalog-border bg-white px-4 py-2 text-sm text-catalog-ink outline-none focus:border-catalog-accent focus:ring-2 focus:ring-catalog-accent/15 sm:flex-none"
             >
               <option value="featured">Destacados</option>
               <option value="price-asc">Precio: menor a mayor</option>
@@ -251,10 +251,10 @@ export default function CatalogPage() {
         </div>}
 
         {loading && (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4" aria-live="polite" aria-label="Cargando productos">
+          <div className="grid grid-cols-1 gap-4 min-[380px]:grid-cols-2 lg:grid-cols-4" aria-live="polite" aria-label="Cargando productos">
             {Array.from({ length: 4 }).map((_, index) => (
               <div key={index} className="animate-pulse overflow-hidden rounded-3xl border border-catalog-border bg-white">
-                <div className="aspect-[4/5] bg-catalog-blush" />
+                <div className="aspect-[4/3] min-[380px]:aspect-[4/5] bg-catalog-blush" />
                 <div className="space-y-3 p-4">
                   <div className="h-3 w-1/3 rounded bg-catalog-blush" />
                   <div className="h-4 w-4/5 rounded bg-catalog-blush" />
@@ -283,23 +283,29 @@ export default function CatalogPage() {
         )}
 
         {!loading && !error && visibleProducts.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 lg:grid-cols-3 xl:grid-cols-4">
-            {visibleProducts.map((product) => {
+          <div className="motion-stagger grid grid-cols-1 gap-x-3 gap-y-7 min-[380px]:grid-cols-2 sm:gap-x-5 lg:grid-cols-3 xl:grid-cols-4">
+            {visibleProducts.map((product, index) => {
               const currentVariantId = selectedVariants[product.id] ?? product.variants[0]?.id;
               const currentVariant = product.variants.find((variant) => variant.id === currentVariantId) ?? product.variants[0];
               const productImage = currentVariant?.imagePath ?? product.mainImagePath;
               const isAdded = addedAnimation[product.id];
+              const cartItem = currentVariantId ? cartItems.find((ci) => ci.variantId === currentVariantId) : undefined;
+              const quantityInCart = cartItem?.quantity ?? 0;
 
               return (
-                <article key={product.id} className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-catalog-border bg-white shadow-[0_8px_30px_rgba(55,24,40,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(55,24,40,0.12)] sm:rounded-3xl">
-                  <div className="relative aspect-[4/5] overflow-hidden bg-catalog-blush">
+                <article
+                  key={product.id}
+                  style={{ '--motion-index': index % 8 } as React.CSSProperties}
+                  className="motion-card motion-stagger-item group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-catalog-border bg-white shadow-[0_8px_30px_rgba(55,24,40,0.06)] hover:border-catalog-accent/30 hover:shadow-[0_18px_40px_rgba(55,24,40,0.12)] sm:rounded-3xl"
+                >
+                  <div className="relative aspect-[4/3] min-[380px]:aspect-[4/5] overflow-hidden bg-catalog-blush/40 p-3 sm:p-4">
                     {productImage ? (
                       <Image
                         src={productImage}
                         alt={product.name}
                         fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        className="object-cover transition duration-500 group-hover:scale-105"
+                        sizes="(max-width: 379px) 100vw, (max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                        className="motion-card-media object-contain p-2"
                       />
                     ) : (
                       <div className="catalog-product-placeholder flex h-full flex-col items-center justify-center p-5 text-center">
@@ -330,7 +336,7 @@ export default function CatalogPage() {
                         <select
                           value={currentVariantId}
                           onChange={(event) => setSelectedVariants((current) => ({ ...current, [product.id]: event.target.value }))}
-                          className="mt-1.5 w-full rounded-xl border border-catalog-border bg-catalog-canvas px-2.5 py-2 text-xs font-medium normal-case tracking-normal text-catalog-ink outline-none focus:border-catalog-accent focus:ring-2 focus:ring-catalog-accent/15"
+                          className="mt-1.5 min-h-11 w-full rounded-xl border border-catalog-border bg-catalog-canvas px-2.5 py-2 text-xs font-medium normal-case tracking-normal text-catalog-ink outline-none focus:border-catalog-accent focus:ring-2 focus:ring-catalog-accent/15"
                         >
                           {product.variants.map((variant) => (
                             <option key={variant.id} value={variant.id} disabled={!variant.isAvailable}>
@@ -348,18 +354,49 @@ export default function CatalogPage() {
                           {currentVariant ? `Q${Number(currentVariant.price).toFixed(2)}` : 'Precio no disponible'}
                         </strong>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(product)}
-                        disabled={!currentVariant?.isAvailable}
-                        aria-label={`Agregar ${product.name} al carrito`}
-                        className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 disabled:cursor-not-allowed disabled:bg-catalog-blush disabled:text-catalog-muted sm:min-h-10 ${
-                          isAdded ? 'bg-emerald-600 text-white' : 'bg-catalog-ink text-white hover:bg-catalog-accent'
-                        }`}
-                      >
-                        {isAdded ? <Check className="h-4 w-4" aria-hidden="true" /> : <ShoppingBag className="h-4 w-4" aria-hidden="true" />}
-                        <span>{isAdded ? 'Agregado' : 'Agregar'}</span>
-                      </button>
+
+                      {/* Quantity stepper when item is in cart; "Agregar" button otherwise */}
+                      {quantityInCart > 0 && !isAdded ? (
+                        <div
+                          className="grid w-full grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] min-h-11 items-center overflow-hidden rounded-full border border-catalog-border bg-catalog-ink sm:min-h-10 sm:w-auto sm:grid-cols-[2.5rem_2rem_2.5rem]"
+                          role="group"
+                          aria-label={`Cantidad de ${product.name} en el carrito`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(currentVariantId!, quantityInCart - 1)}
+                            aria-label={quantityInCart === 1 ? `Quitar ${product.name} del carrito` : `Reducir cantidad de ${product.name}`}
+                            className="flex h-11 w-full items-center justify-center text-white transition hover:bg-catalog-accent active:scale-90 sm:h-10"
+                          >
+                            <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+                          </button>
+                          <span key={quantityInCart} className="motion-value-change select-none text-center text-sm font-bold tabular-nums text-white" aria-live="polite">
+                            {quantityInCart}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(currentVariantId!, quantityInCart + 1)}
+                            disabled={quantityInCart >= 100}
+                            aria-label={`Aumentar cantidad de ${product.name}`}
+                            className="flex h-11 w-full items-center justify-center text-white transition hover:bg-catalog-accent active:scale-90 disabled:cursor-not-allowed disabled:opacity-40 sm:h-10"
+                          >
+                            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddToCart(product)}
+                          disabled={!currentVariant?.isAvailable}
+                          aria-label={`Agregar ${product.name} al carrito`}
+                          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold transition active:scale-95 disabled:cursor-not-allowed disabled:bg-catalog-blush disabled:text-catalog-muted sm:min-h-10 ${
+                            isAdded ? 'bg-emerald-600 text-white' : 'bg-catalog-ink text-white hover:bg-catalog-accent'
+                          }`}
+                        >
+                          {isAdded ? <Check className="h-4 w-4" aria-hidden="true" /> : <ShoppingBag className="h-4 w-4" aria-hidden="true" />}
+                          <span key={isAdded ? 'added' : 'add'} className="motion-value-change">{isAdded ? 'Agregado' : 'Agregar'}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>

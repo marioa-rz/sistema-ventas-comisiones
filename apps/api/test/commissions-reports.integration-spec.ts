@@ -34,7 +34,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
   const orders = new OrdersService(prisma as unknown as PrismaService, storage);
   const sellerOrders = new SellerOrdersService(prisma as unknown as PrismaService);
   const payments = new PaymentsService(prisma as unknown as PrismaService);
-  const commissions = new CommissionsService(prisma as unknown as PrismaService);
+  const commissions = new CommissionsService(prisma as unknown as PrismaService, storage);
   const reports = new ReportsService(prisma as unknown as PrismaService);
 
   beforeAll(async () => {
@@ -55,16 +55,43 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
 
   afterAll(async () => {
     await prisma.auditLog.deleteMany({ where: { actorId: { in: [sellerId, adminId] } } });
-    await prisma.commission.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.commissionPayout.deleteMany({ where: { id: { in: createdPayoutIds } } });
-    await prisma.payment.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.orderItem.deleteMany({ where: { orderId: { in: createdOrderIds } } });
-    await prisma.order.deleteMany({ where: { id: { in: createdOrderIds } } });
-    await prisma.customer.deleteMany({ where: { id: { in: createdCustomerIds } } });
-    await prisma.productVariant.delete({ where: { id: variantId } });
-    await prisma.product.delete({ where: { id: productId } });
-    await prisma.category.delete({ where: { id: categoryId } });
+
+    // 1. Delete payout items first so commissions are no longer referenced by items
+    if (createdPayoutIds.length > 0) {
+      await prisma.commissionPayoutItem.deleteMany({ where: { payoutId: { in: createdPayoutIds } } });
+    }
+
+    // 2. Delete commissions second (safe now that payout items referencing them are gone)
+    if (createdOrderIds.length > 0) {
+      await prisma.commission.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+    }
+
+    // 3. Delete payouts third (safe now that commissions pointing to them via payout_id are gone)
+    if (createdPayoutIds.length > 0) {
+      await prisma.commissionPayout.deleteMany({ where: { id: { in: createdPayoutIds } } });
+    }
+
+    // 4. Delete payment proofs, payments, order items, and orders
+    if (createdOrderIds.length > 0) {
+      await prisma.paymentProof.deleteMany({ where: { payment: { is: { orderId: { in: createdOrderIds } } } } });
+      await prisma.payment.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+      await prisma.orderItem.deleteMany({ where: { orderId: { in: createdOrderIds } } });
+      await prisma.order.deleteMany({ where: { id: { in: createdOrderIds } } });
+    }
+
+    // 5. Delete customers
+    if (createdCustomerIds.length > 0) {
+      await prisma.customer.deleteMany({ where: { id: { in: createdCustomerIds } } });
+    }
+
+    // 6. Delete catalog items
+    await prisma.productVariant.deleteMany({ where: { id: variantId } });
+    await prisma.product.deleteMany({ where: { id: productId } });
+    await prisma.category.deleteMany({ where: { id: categoryId } });
+
+    // 7. Delete test users
     await prisma.appUser.deleteMany({ where: { id: { in: [sellerId, adminId] } } });
+
     await prisma.$disconnect();
   });
 
@@ -110,6 +137,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
     const payoutResult = await commissions.createPayout(adminId, {
       sellerId,
       commissionIds: [approvedCommId],
+      method: 'CASH',
       idempotencyKey: payoutKey,
       reference: 'TR-100200',
       note: 'Liquidación quincenal',
@@ -123,6 +151,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
     const retryResult = await commissions.createPayout(adminId, {
       sellerId,
       commissionIds: [approvedCommId],
+      method: 'CASH',
       idempotencyKey: payoutKey,
     });
     expect(retryResult.id).toBe(payoutResult.id);
@@ -132,6 +161,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
       commissions.createPayout(adminId, {
         sellerId,
         commissionIds: [approvedCommId],
+        method: 'CASH',
         idempotencyKey: `other-key-${suffix}`,
       }),
     ).rejects.toThrow();

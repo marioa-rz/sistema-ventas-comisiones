@@ -86,21 +86,19 @@ export default function PortalLoginPage() {
   return (
     <div className="mx-auto max-w-md space-y-6 px-4 py-12">
       <div className="space-y-3 text-center">
-        <div className="relative mx-auto h-16 w-16">
-          <Image
-            src="/sakura-logo.png"
-            alt="Sakura Makeup"
-            fill
-            className="object-contain filter drop-shadow-[0_0_15px_rgba(255,45,155,0.4)]"
-            priority
-          />
-        </div>
         <div className="inline-flex items-center gap-1.5 rounded-full border border-sakura/30 bg-[rgba(255,45,155,0.1)] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-sakura">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           <span>Portal Interno</span>
         </div>
-        <h1 className="text-2xl font-black text-white sm:text-3xl">
-          Ingreso a <span className="text-sakura">Sakura Makeup</span>
+        <h1 className="relative mx-auto !mt-6 h-20 w-64 sm:h-24 sm:w-80">
+          <Image
+            src="/sakura-brand.webp"
+            alt="Sakura Makeup"
+            fill
+            sizes="(max-width: 640px) 224px, 256px"
+            className="object-contain drop-shadow-[0_0_14px_rgba(255,45,155,0.25)]"
+            priority
+          />
         </h1>
         <p className="text-xs text-[#A09098]">
           Acceso exclusivo para Vendedoras y Administradoras autorizadas
@@ -214,7 +212,7 @@ export default function PortalLoginPage() {
               </p>
             ) : (
               <p id="login-password-help" className="mt-1 text-[11px] text-[#A09098]">
-                La contraseña se valida de forma segura con Supabase Auth.
+                La contraseña se valida de forma segura.
               </p>
             )}
           </div>

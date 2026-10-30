@@ -1,4 +1,5 @@
 import Decimal from 'decimal.js';
+import ExcelJS from 'exceljs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { PrismaService } from '../database/prisma.service';
 import { ReportsService } from './reports.service';
@@ -173,6 +174,42 @@ describe('ReportsService', () => {
       expect(csv).toContain('VNT-001');
       expect(csv).toContain('Ana Seller');
       expect(csv).toContain('200.00');
+    });
+
+    it('generates an XLSX buffer with summary and details sheets when requested', async () => {
+      prismaMock.order.findMany.mockResolvedValueOnce([
+        {
+          id: 'ord-1',
+          sellerId: 'seller-1',
+          publicCode: 'VNT-001',
+          totalAmount: new Decimal('200.00'),
+          commissionAmount: new Decimal('40.00'),
+          confirmedAt: new Date('2026-10-15T15:00:00Z'),
+          customer: { name: 'Maria Lopez', phone: '12345678' },
+          seller: { id: 'seller-1', displayName: 'Ana Seller' },
+          payment: { method: 'TRANSFER' },
+          commission: { status: 'APPROVED', amount: new Decimal('40.00') },
+        },
+      ]);
+
+      const buffer = await service.exportSalesXlsx({
+        startDate: '2026-10-01',
+        endDate: '2026-10-31',
+      });
+
+      expect(Buffer.isBuffer(buffer)).toBe(true);
+      expect(buffer.length).toBeGreaterThan(0);
+      // Los archivos XLSX son archivos ZIP que inician con la firma PK\x03\x04
+      expect(buffer[0]).toBe(0x50);
+      expect(buffer[1]).toBe(0x4b);
+
+      const testWorkbook = new ExcelJS.Workbook();
+      await testWorkbook.xlsx.load(Uint8Array.from(buffer).buffer);
+      expect(testWorkbook.worksheets.map((w) => w.name)).toEqual(['Resumen Comisiones', 'Detalle de Ventas']);
+
+      const summarySheet = testWorkbook.getWorksheet('Resumen Comisiones');
+      expect(summarySheet).toBeDefined();
+      expect(summarySheet?.rowCount).toBeGreaterThanOrEqual(2);
     });
   });
 });

@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { CartProvider } from '../lib/cart-context';
+import { CatalogSearchProvider } from '../lib/catalog-search-context';
 import { Footer } from './footer';
 import { PublicNavbar } from './public-navbar';
 
@@ -20,9 +21,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CartProvider>
-      <PublicNavbar />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
-      <Footer />
+      <CatalogSearchProvider>
+        <PublicNavbar />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+        <Footer />
+      </CatalogSearchProvider>
     </CartProvider>
   );
 }

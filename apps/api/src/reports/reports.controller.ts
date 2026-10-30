@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Res, StreamableFile, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -25,12 +25,20 @@ export class ReportsController {
   }
 
   @Get('reports/sales')
-  @ApiOperation({ summary: 'Generar reporte detallado de ventas por rango de fechas (JSON o exportación CSV)' })
-  @ApiProduces('application/json', 'text/csv')
+  @ApiOperation({ summary: 'Generar reporte detallado de ventas por rango de fechas (JSON, CSV o XLSX)' })
+  @ApiProduces('application/json', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   async getSalesReport(
     @Query() query: SalesReportQueryDto,
     @Res({ passthrough: true }) res: HeaderResponse,
   ) {
+    if (query.format === ReportFormat.XLSX) {
+      const buffer = await this.reports.exportSalesXlsx(query);
+      return new StreamableFile(buffer, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: `attachment; filename="ventas-${query.startDate}-a-${query.endDate}.xlsx"`,
+      });
+    }
+
     if (query.format === ReportFormat.CSV) {
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="ventas-${query.startDate}-a-${query.endDate}.csv"`);
