@@ -10,15 +10,21 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Matches,
   Max,
   MaxLength,
-  MinLength,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { PaymentMethod } from '../generated/prisma/enums';
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
+const normalizeGuatemalanPhone = ({ value }: { value: unknown }) => {
+  if (typeof value !== 'string') return value;
+  let digits = value.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('502')) digits = digits.slice(3);
+  return digits;
+};
 const parseItems = ({ value }: { value: unknown }) => {
   let parsed = value;
   try {
@@ -56,11 +62,17 @@ export class CreateOrderDto {
   @Transform(trim)
   customerName!: string;
 
-  @ApiProperty({ type: String, minLength: 7, maxLength: 32 })
+  @ApiProperty({
+    type: String,
+    minLength: 8,
+    maxLength: 8,
+    pattern: '^[2-7][0-9]{7}$',
+    example: '55550000',
+    description: 'Número telefónico de Guatemala, normalizado a ocho dígitos',
+  })
   @IsString()
-  @MinLength(7)
-  @MaxLength(32)
-  @Transform(trim)
+  @Matches(/^[2-7]\d{7}$/)
+  @Transform(normalizeGuatemalanPhone)
   customerPhone!: string;
 
   @ApiProperty({ enum: PaymentMethod })

@@ -240,16 +240,18 @@ Requiere rol `ADMIN`.
 5. **Liquidación de comisiones aprobadas:**
    ```http
    POST /api/admin/commission-payouts
-   Content-Type: application/json
+   Content-Type: multipart/form-data
 
-   {
-     "sellerId": "uuid-vendedor",
-     "commissionIds": ["uuid-comision-1", "uuid-comision-2"],
-     "reference": "TR-BANCO-12345",
-     "note": "Liquidación quincenal",
-     "idempotencyKey": "payout-oct-seller-1"
-   }
+   sellerId=uuid-vendedor
+   commissionIds=["uuid-comision-1","uuid-comision-2"]
+   method=TRANSFER
+   proof=<imagen JPEG o PNG>
+   note=Liquidación quincenal
+   idempotencyKey=payout-oct-seller-1
    ```
+   Para efectivo se envía `method=CASH` sin `proof`. La vendedora administra su destino
+   bancario con `GET/PATCH /api/seller/commissions/payout-settings`; una transferencia
+   conserva una copia histórica del banco, cuenta y comprobante privado usados.
 
 6. **Reportes analíticos de ventas:**
    - JSON:

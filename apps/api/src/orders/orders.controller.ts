@@ -54,7 +54,11 @@ export class OrdersController {
           required: ['customerName', 'customerPhone', 'paymentMethod', 'items', 'paymentProof'],
           properties: {
             customerName: { type: 'string', maxLength: 120 },
-            customerPhone: { type: 'string', maxLength: 32 },
+            customerPhone: {
+              type: 'string',
+              description: 'Número de Guatemala; acepta 5555-0000 o +502 5555-0000 y se normaliza a ocho dígitos',
+              example: '5555-0000',
+            },
             paymentMethod: { type: 'string', enum: ['TRANSFER'] },
             items: {
               type: 'string',

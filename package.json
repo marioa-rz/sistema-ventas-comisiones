@@ -28,6 +28,7 @@
     "prisma:migrate:dev": "npm run prisma:migrate:dev -w @sakura/api",
     "prisma:migrate:deploy": "npm run prisma:migrate:deploy -w @sakura/api",
     "db:seed": "npm run db:seed -w @sakura/api",
+    "catalog:import": "node --import tsx apps/api/scripts/import-products.ts",
     "verify": "npm run lint && npm run typecheck && npm run prisma:validate && npm run test && npm run build"
   }
 }

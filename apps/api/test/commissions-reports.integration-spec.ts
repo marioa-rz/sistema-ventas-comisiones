@@ -34,7 +34,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
   const orders = new OrdersService(prisma as unknown as PrismaService, storage);
   const sellerOrders = new SellerOrdersService(prisma as unknown as PrismaService);
   const payments = new PaymentsService(prisma as unknown as PrismaService);
-  const commissions = new CommissionsService(prisma as unknown as PrismaService);
+  const commissions = new CommissionsService(prisma as unknown as PrismaService, storage);
   const reports = new ReportsService(prisma as unknown as PrismaService);
 
   beforeAll(async () => {
@@ -110,6 +110,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
     const payoutResult = await commissions.createPayout(adminId, {
       sellerId,
       commissionIds: [approvedCommId],
+      method: 'CASH',
       idempotencyKey: payoutKey,
       reference: 'TR-100200',
       note: 'Liquidación quincenal',
@@ -123,6 +124,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
     const retryResult = await commissions.createPayout(adminId, {
       sellerId,
       commissionIds: [approvedCommId],
+      method: 'CASH',
       idempotencyKey: payoutKey,
     });
     expect(retryResult.id).toBe(payoutResult.id);
@@ -132,6 +134,7 @@ describeWithDatabase('commissions settlements and reports workflow', () => {
       commissions.createPayout(adminId, {
         sellerId,
         commissionIds: [approvedCommId],
+        method: 'CASH',
         idempotencyKey: `other-key-${suffix}`,
       }),
     ).rejects.toThrow();

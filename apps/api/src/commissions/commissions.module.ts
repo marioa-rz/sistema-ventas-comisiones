@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { DatabaseModule } from '../database/database.module';
+import { PaymentProofStorage } from '../storage/payment-proof.storage';
 import { AdminCommissionsController } from './admin-commissions.controller';
 import { CommissionsService } from './commissions.service';
 import { SellerCommissionsController } from './seller-commissions.controller';
@@ -8,7 +9,7 @@ import { SellerCommissionsController } from './seller-commissions.controller';
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [SellerCommissionsController, AdminCommissionsController],
-  providers: [CommissionsService],
+  providers: [CommissionsService, PaymentProofStorage],
   exports: [CommissionsService],
 })
 export class CommissionsModule {}

@@ -21,7 +21,7 @@ describe('CreateOrderDto', () => {
   it('transforms multipart item JSON into validated order items', async () => {
     const dto = plainToInstance(CreateOrderDto, {
       customerName: ' Cliente ',
-      customerPhone: ' 55550000 ',
+      customerPhone: ' +502 5555-0000 ',
       paymentMethod: 'TRANSFER',
       items: '[{"variantId":"30000000-0000-4000-8000-000000000001","quantity":2}]',
     });
@@ -48,6 +48,9 @@ describe('CreateOrderDto', () => {
   it.each([
     { customerName: '   ', customerPhone: '55550000' },
     { customerName: 'Cliente', customerPhone: '123' },
+    { customerName: 'Cliente', customerPhone: '1555-0000' },
+    { customerName: 'Cliente', customerPhone: '8555-0000' },
+    { customerName: 'Cliente', customerPhone: '9555-0000' },
   ])('rejects invalid customer identity before reaching PostgreSQL', async (customer) => {
     const dto = plainToInstance(CreateOrderDto, {
       ...customer,
