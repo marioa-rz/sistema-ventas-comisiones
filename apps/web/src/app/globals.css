@@ -90,8 +90,8 @@ input:-webkit-autofill:active {
 
 @keyframes customer-enter {
   from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0);
+    opacity: 1;
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
@@ -101,9 +101,9 @@ input:-webkit-autofill:active {
 
 @keyframes customer-mask-reveal {
   from {
-    clip-path: inset(8% 6% 8% 6% round 3rem);
-    opacity: 0;
-    transform: translate3d(0, 14px, 0);
+    clip-path: inset(2% 2% 2% 2% round 3rem);
+    opacity: 1;
+    transform: translate3d(0, 8px, 0);
   }
   to {
     clip-path: inset(-25% round 0);
@@ -114,8 +114,8 @@ input:-webkit-autofill:active {
 
 @keyframes customer-dolly {
   from {
-    opacity: 0;
-    transform: perspective(900px) translate3d(0, 12px, 48px) scale(1.08);
+    opacity: 1;
+    transform: perspective(900px) translate3d(0, 8px, 20px) scale(1.03);
   }
   to {
     opacity: 1;
@@ -174,15 +174,15 @@ input:-webkit-autofill:active {
 }
 
 .motion-hero-copy > :nth-child(2) {
-  animation-delay: 70ms;
+  animation-delay: 0ms;
 }
 
 .motion-hero-copy > :nth-child(3) {
-  animation-delay: 140ms;
+  animation-delay: 80ms;
 }
 
 .motion-hero-copy > :nth-child(4) {
-  animation-delay: 210ms;
+  animation-delay: 140ms;
 }
 
 .motion-mask {
@@ -190,7 +190,7 @@ input:-webkit-autofill:active {
 }
 
 .motion-dolly {
-  animation: customer-dolly 820ms var(--motion-ease-emphasized) 100ms both;
+  animation: customer-dolly 820ms var(--motion-ease-emphasized) both;
   transform-origin: center 62%;
 }
 
