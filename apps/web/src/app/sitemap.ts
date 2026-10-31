@@ -1,7 +1,9 @@
 import type { MetadataRoute } from 'next';
 import { siteUrl } from '../lib/site-url';
 
-const publicRoutes = ['/', '/aviso-legal', '/privacidad', '/cookies'];
+export const dynamic = 'force-static';
+
+const publicRoutes = ['/', '/politicas', '/aviso-legal', '/privacidad', '/cookies'];
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return publicRoutes.map((route) => ({

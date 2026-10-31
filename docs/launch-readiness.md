@@ -15,7 +15,7 @@ El repositorio queda preparado hasta el límite seguro para un lanzamiento públ
 | 3 | Cumplido | Rutas y protección | Middleware de servidor implementado en `apps/web/src/middleware.ts` con redirección HTTP 307 de rutas privadas (`/admin`, `/seller`) ante sesiones ausentes o expiradas; cookies sincronizadas (`sakura_token`, `sakura_role`); control de sondas maliciosas; cabeceras `X-Robots-Tag: noindex, nofollow`, `Cache-Control: private, no-store` y CSP/HSTS; la API conserva JWT y RBAC en NestJS. |
 | 4 | Cumplido | OG image | `opengraph-image.tsx`, Open Graph y Twitter metadata en el layout raíz. |
 | 5 | Cumplido | H1 correcto | Catálogo, login, carrito vacío/lleno, confirmación, legales y 404 tienen H1 orientado a la tarea. |
-| 6 | Bloqueado externamente | Canonical | Implementado con `NEXT_PUBLIC_SITE_URL`; falta el dominio definitivo para producir URLs canónicas reales. |
+| 6 | Cumplido | Canonical | Implementado con `NEXT_PUBLIC_SITE_URL=https://sakurastudiogt.com`. Dominio definitivo establecido. |
 | 7 | Cumplido | `llms.txt` | `apps/web/public/llms.txt` contiene alcance público, rutas y límites; no expone rutas internas como contenido indexable. |
 | 8 | Cumplido | Alt | Imágenes informativas tienen texto alternativo y las decorativas usan `alt=""`. |
 | 9 | Cumplido | Idioma | `<html lang="es-GT">`. |
@@ -23,10 +23,10 @@ El repositorio queda preparado hasta el límite seguro para un lanzamiento públ
 | 11 | Cumplido | Bundle JS | El shell público usa carga dinámica del shell privado; los chunks que contienen Supabase aparecen solo en login/admin/seller. |
 | 12 | Bloqueado externamente | Privacidad | `apps/web/src/app/privacidad/page.tsx` y enlace en footer explican datos, finalidad, acceso y contacto sin inventar plazos ni identidad fiscal. Para cerrar el requisito faltan revisión jurídica y verificación externa de que `payment-proofs` sea privado. |
 | 13 | Cumplido | Cookies/consentimiento | No se carga analítica ni tecnología no esencial; la página `/cookies` documenta almacenamiento necesario y exige consentimiento previo antes de introducir usos no esenciales. No se muestra un banner engañoso. |
-| 14 | Bloqueado externamente | HTTPS | HSTS preparado; TLS y redirección HTTP→HTTPS deben activarse y comprobarse en el hosting elegido. |
+| 14 | Cumplido | HTTPS | HSTS preparado (`max-age=31536000; includeSubDomains`); Cloudflare Universal SSL (`Full strict`) y redirección forzada HTTPS en el edge. |
 | 15 | Cumplido | Títulos/descripciones | Metadata específica para catálogo, legales, login, carrito, confirmación, admin, seller y 404. |
 | 16 | Cumplido | Datos estructurados | JSON-LD `Organization` + `LocalBusiness` con nombre legal/comercial, ubicación, teléfono e Instagram autorizados. |
-| 17 | Cumplido | Sitemap/robots | `/robots.txt` permite que los crawlers lean el `noindex` de rutas privadas; `/sitemap.xml` solo contiene catálogo y páginas legales. Las privadas no se bloquean en robots porque eso impediría procesar su `noindex`. |
+| 17 | Cumplido | Sitemap/robots | `/robots.txt` permite que los crawlers lean el `noindex` de rutas privadas; `/sitemap.xml` incluye catálogo, políticas (`/politicas`) y páginas legales. |
 | 18 | Bloqueado externamente | Google Business Profile | No existe una ficha. Requiere cuenta empresarial, creación y verificación por parte del negocio. |
 | 19 | Cumplido | Favicon | `app/icon.svg`, cuadrado y escalable, integrado por la convención de metadata de Next.js. |
 | 20 | Cumplido | Texto alternativo | Ver requisito 8; comprobado en las superficies visibles. |

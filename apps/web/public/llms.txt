@@ -4,6 +4,7 @@ Sakura Makeup es el nombre comercial de Sakura Studio, ubicado en Villa Hermosa,
 
 Rutas públicas:
 - / — catálogo y creación de pedidos.
+- /politicas — políticas de servicio, despachos y propiedad de paquetes pagados.
 - /aviso-legal — identificación y condiciones de uso.
 - /privacidad — tratamiento de datos del pedido.
 - /cookies — almacenamiento local y estrategia de consentimiento.

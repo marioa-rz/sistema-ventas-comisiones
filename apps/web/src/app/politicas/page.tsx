@@ -1,6 +1,25 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, ShieldCheck, Truck, Clock, RefreshCw, AlertCircle } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Políticas de servicio y envíos | Sakura Makeup',
+  description: 'Condiciones de despacho, propiedad de paquetes pagados y coordinación de entregas en Guatemala.',
+  alternates: { canonical: '/politicas' },
+  openGraph: {
+    title: 'Políticas de servicio y envíos | Sakura Makeup',
+    description: 'Condiciones de despacho, propiedad de paquetes pagados y coordinación de entregas en Guatemala.',
+    url: '/politicas',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Políticas de servicio y envíos | Sakura Makeup',
+    description: 'Condiciones de despacho, propiedad de paquetes pagados y coordinación de entregas en Guatemala.',
+    images: ['/opengraph-image'],
+  },
+};
 
 export default function PoliticasPage() {
   return (
