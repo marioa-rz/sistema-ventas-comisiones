@@ -55,34 +55,34 @@ export default function CatalogPage() {
   const [addedAnimation, setAddedAnimation] = useState<Record<string, boolean>>({});
   const { addItem, items: cartItems, updateQuantity } = useCart();
 
-  useEffect(() => {
-    const loadCatalog = async () => {
-      setLoading(true);
-      setError(null);
+  const loadCatalog = async () => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const [cats, prods] = await Promise.all([
-          apiClient<Category[]>('categories'),
-          loadAllCatalogProducts((limit, offset) =>
-            apiClient<Product[]>(`products?limit=${limit}&offset=${offset}`),
-          ),
-        ]);
-        setCategories(cats);
-        setProducts(prods);
+    try {
+      const [cats, prods] = await Promise.all([
+        apiClient<Category[]>('categories'),
+        loadAllCatalogProducts((limit, offset) =>
+          apiClient<Product[]>(`products?limit=${limit}&offset=${offset}`),
+        ),
+      ]);
+      setCategories(cats);
+      setProducts(prods);
 
-        const initialVariants: Record<string, string> = {};
-        for (const product of prods) {
-          const firstAvailable = product.variants.find((variant) => variant.isAvailable) ?? product.variants[0];
-          if (firstAvailable) initialVariants[product.id] = firstAvailable.id;
-        }
-        setSelectedVariants(initialVariants);
-      } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : 'No pudimos cargar el catálogo.');
-      } finally {
-        setLoading(false);
+      const initialVariants: Record<string, string> = {};
+      for (const product of prods) {
+        const firstAvailable = product.variants.find((variant) => variant.isAvailable) ?? product.variants[0];
+        if (firstAvailable) initialVariants[product.id] = firstAvailable.id;
       }
-    };
+      setSelectedVariants(initialVariants);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'No pudimos cargar el catálogo.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     void loadCatalog();
   }, []);
 
@@ -266,8 +266,28 @@ export default function CatalogPage() {
         )}
 
         {error && (
-          <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-800">
-            {error}
+          <div role="alert" className="rounded-3xl border border-catalog-border bg-white px-6 py-12 text-center shadow-[0_8px_30px_rgba(55,24,40,0.06)]">
+            <h3 className="font-serif text-2xl font-semibold text-catalog-ink">Catálogo en actualización</h3>
+            <p className="mx-auto mt-2 max-w-md text-sm text-catalog-muted">
+              Estamos sincronizando nuestra colección disponible. Intenta recargar en unos instantes o escríbenos directamente para atención personalizada.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => void loadCatalog()}
+                className="rounded-full bg-catalog-accent px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-catalog-accent-strong"
+              >
+                Reintentar carga
+              </button>
+              <a
+                href="https://wa.me/50242727527"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-catalog-border bg-white px-6 py-3 text-sm font-semibold text-catalog-ink transition hover:border-catalog-accent hover:text-catalog-accent"
+              >
+                Consultar por WhatsApp
+              </a>
+            </div>
           </div>
         )}
 

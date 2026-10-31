@@ -45,7 +45,7 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     if (networkError instanceof TypeError) {
       throw new ApiError(
         0,
-        `No se pudo conectar con la API en ${API_BASE_URL}. Asegúrate de que el backend esté iniciado con 'npm run dev' y escuchando en el puerto 3000.`,
+        'No se pudo conectar con el servicio. Inténtalo de nuevo en unos instantes.',
       );
     }
     throw networkError;
@@ -103,7 +103,7 @@ export async function apiDownload(endpoint: string, token: string): Promise<Blob
     });
   } catch (networkError) {
     if (networkError instanceof TypeError) {
-      throw new ApiError(0, `No se pudo conectar con la API en ${API_BASE_URL}.`);
+      throw new ApiError(0, 'No se pudo conectar con el servicio. Inténtalo de nuevo en unos instantes.');
     }
     throw networkError;
   }
