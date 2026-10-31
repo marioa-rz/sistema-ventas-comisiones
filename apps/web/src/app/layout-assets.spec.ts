@@ -13,11 +13,24 @@ const appShell = readFileSync(new URL('../components/app-shell.tsx', import.meta
 const legalNotice = readFileSync(new URL('./aviso-legal/page.tsx', import.meta.url), 'utf8');
 const privacy = readFileSync(new URL('./privacidad/page.tsx', import.meta.url), 'utf8');
 const cookies = readFileSync(new URL('./cookies/page.tsx', import.meta.url), 'utf8');
+const politicas = readFileSync(new URL('./politicas/page.tsx', import.meta.url), 'utf8');
+const cloudflareHeaders = readFileSync(new URL('../../public/_headers', import.meta.url), 'utf8');
 
 describe('Next.js build asset isolation', () => {
   it('keeps development assets separate from production builds', () => {
     expect(nextConfig).toContain("distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next'");
     expect(gitignore).toContain('.next-dev/');
+    expect(gitignore).toContain('out/');
+  });
+
+  it('configures static HTML export and edge headers for Cloudflare Pages', () => {
+    expect(nextConfig).toContain("output: 'export'");
+    expect(nextConfig).toContain('unoptimized: true');
+    expect(cloudflareHeaders).toContain('Content-Security-Policy:');
+    expect(cloudflareHeaders).toContain('X-Frame-Options: DENY');
+    expect(cloudflareHeaders).toContain('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    expect(cloudflareHeaders).toContain('/admin');
+    expect(cloudflareHeaders).toContain('X-Robots-Tag: noindex, nofollow');
   });
 
   it('sets public security headers and limits remote images to configured HTTPS hosts', () => {
@@ -59,6 +72,7 @@ describe('Next.js build asset isolation', () => {
   it('indexes only public routes and exposes a public sitemap', () => {
     expect(robots).not.toContain("disallow: ['/admin', '/seller', '/login', '/cart', '/order-confirmation']");
     expect(robots).toContain("sitemap: `${siteUrl.origin}/sitemap.xml`");
+    expect(sitemap).toContain("'/politicas'");
     expect(sitemap).toContain("'/aviso-legal'");
     expect(sitemap).toContain("'/privacidad'");
     expect(sitemap).toContain("'/cookies'");
@@ -67,6 +81,7 @@ describe('Next.js build asset isolation', () => {
   });
 
   it('links the legal and privacy information from the footer', () => {
+    expect(footer).toContain('href="/politicas"');
     expect(footer).toContain('href="/aviso-legal"');
     expect(footer).toContain('href="/privacidad"');
     expect(footer).toContain('href="/cookies"');
@@ -89,7 +104,7 @@ describe('Next.js build asset isolation', () => {
   });
 
   it('provides route-specific social previews for legal pages', () => {
-    for (const source of [legalNotice, privacy, cookies]) {
+    for (const source of [legalNotice, privacy, cookies, politicas]) {
       expect(source).toContain('openGraph:');
       expect(source).toContain('twitter:');
     }

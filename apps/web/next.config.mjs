@@ -38,10 +38,12 @@ const contentSecurityPolicy = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   reactStrictMode: true,
   poweredByHeader: false,
   distDir: process.env.NODE_ENV === 'development' ? '.next-dev' : '.next',
   images: {
+    unoptimized: true,
     remotePatterns,
   },
   async headers() {
